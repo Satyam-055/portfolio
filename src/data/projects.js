@@ -1,0 +1,108 @@
+const projects = [
+  {
+    id: 'income-allocation',
+    title: 'Income & Allocation',
+    tags: ['Dashboard', 'Data Viz', 'Drag & Drop'],
+    previewColor: '#CEF8E0',
+    previewType: 'bars',
+    role: 'Lead Designer',
+    timeline: '12 Weeks',
+    platform: 'Web',
+    team: ['Dev', 'Marketing', 'Designer'],
+    description:
+      'Redesigned the income allocation interface for a wealth management platform, enabling users to split deposits across savings, investments, and spending accounts with intuitive drag-based controls and real-time previews.',
+  },
+  {
+    id: 'policy-review',
+    title: 'Policy Review',
+    tags: ['Compliance', 'User Research', 'Mobile'],
+    previewColor: '#E8DBFA',
+    previewType: 'cards',
+    role: 'Product Designer',
+    timeline: '8 Weeks',
+    platform: 'Web & Mobile',
+    team: ['Dev', 'Legal', 'Designer'],
+    description:
+      'Crafted a streamlined policy review flow that surfaces key coverage details, highlights changes between renewal periods, and reduces the time advisors spend on document comparison by 40%.',
+  },
+  {
+    id: 'spending-analytics',
+    title: 'Spending Analytics',
+    tags: ['Data Viz', 'Charts', 'Real-time'],
+    previewColor: '#D6ECFF',
+    previewType: 'chart',
+    role: 'Lead Designer',
+    timeline: '10 Weeks',
+    platform: 'Mobile',
+    team: ['Dev', 'Data', 'Designer'],
+    description:
+      'Built a comprehensive spending analytics dashboard that categorizes transactions, tracks budget goals, and provides actionable insights through interactive charts and personalized nudges.',
+  },
+  {
+    id: 'estate-planning',
+    title: 'Estate Planning',
+    tags: ['Advisory', 'Wizard Flow', 'IA'],
+    previewColor: '#FFE0E0',
+    previewType: 'list',
+    role: 'Senior Designer',
+    timeline: '14 Weeks',
+    platform: 'Web',
+    team: ['Dev', 'Marketing', 'Designer'],
+    description:
+      'Designed an estate planning toolkit that guides advisors through beneficiary setup, asset mapping, and trust configuration with a step-by-step wizard and progress tracking.',
+  },
+  {
+    id: 'portfolio-tracker',
+    title: 'Portfolio Tracker',
+    tags: ['Dashboard', 'Animation', 'Responsive'],
+    previewColor: '#FFF3D6',
+    previewType: 'bars',
+    role: 'Lead Designer',
+    timeline: '6 Weeks',
+    platform: 'Web & Mobile',
+    team: ['Dev', 'Designer'],
+    description:
+      'Created a real-time portfolio tracking dashboard featuring asset breakdown, performance benchmarking, and sector-level drill-downs with smooth animated transitions between time ranges.',
+  },
+  {
+    id: 'tax-optimizer',
+    title: 'Tax Optimizer',
+    tags: ['Fintech', 'Simulation', 'Strategy'],
+    previewColor: '#D6F5EC',
+    previewType: 'chart',
+    role: 'Product Designer',
+    timeline: '9 Weeks',
+    platform: 'Web',
+    team: ['Dev', 'Finance', 'Designer'],
+    description:
+      'Developed an intelligent tax optimization interface that simulates harvesting scenarios, visualizes potential savings, and provides one-click execution for recommended strategies.',
+  },
+  {
+    id: 'onboarding-flow',
+    title: 'Onboarding Flow',
+    tags: ['Conversion', 'Forms', 'UX Writing'],
+    previewColor: '#E8DBFA',
+    previewType: 'cards',
+    role: 'Lead Designer',
+    timeline: '4 Weeks',
+    platform: 'Mobile',
+    team: ['Dev', 'Growth', 'Designer'],
+    description:
+      'Reimagined the customer onboarding experience with progressive disclosure, inline verification, and contextual tooltips, increasing completion rates from 62% to 89%.',
+  },
+  {
+    id: 'advisor-dashboard',
+    title: 'Advisor Dashboard',
+    tags: ['Platform', 'Multi-view', 'Alerts'],
+    previewColor: '#D6ECFF',
+    previewType: 'list',
+    role: 'Senior Designer',
+    timeline: '16 Weeks',
+    platform: 'Web',
+    team: ['Dev', 'Marketing', 'Designer'],
+    description:
+      'Designed a unified advisor dashboard consolidating client portfolios, meeting schedules, compliance alerts, and performance metrics into a single actionable workspace.',
+  },
+]
+
+export default projects

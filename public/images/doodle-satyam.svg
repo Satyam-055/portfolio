@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 680" fill="none">
+  <!--
+    Doodle portrait of Satyam at Lodhi Gardens
+    Style: Contemporary line illustration — confident strokes, solid fills,
+    closed shapes, minimal face, black hair fill, casual standing pose
+  -->
+
+  <!-- ═══ HAIR (solid black, messy top) ═══ -->
+  <path d="M230 128 Q225 110 235 100 Q245 90 260 88 Q275 87 285 92 Q295 98 298 110 Q300 118 295 125"
+    fill="#1A1A1A" stroke="#1A1A1A" stroke-width="2"/>
+  <!-- Hair texture strands -->
+  <path d="M240 95 Q238 85 245 82 M258 88 Q260 78 265 80 M275 90 Q280 82 283 86 M290 96 Q295 88 292 84"
+    stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- ═══ HEAD ═══ -->
+  <path d="M228 135 Q220 145 222 160 Q224 175 235 185 Q245 192 260 194 Q275 193 285 185 Q295 175 298 160 Q300 145 295 132"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ═══ FACE ═══ -->
+  <!-- Eyebrows -->
+  <path d="M242 145 Q247 142 253 144" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M270 143 Q275 140 281 143" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <!-- Eyes (confident dots) -->
+  <circle cx="248" cy="152" r="2.5" fill="#1A1A1A"/>
+  <circle cx="275" cy="151" r="2.5" fill="#1A1A1A"/>
+  <!-- Nose -->
+  <path d="M261 155 Q258 165 260 170 Q263 173 266 170" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Smile (wide, friendly — matching the photo) -->
+  <path d="M247 178 Q252 186 262 188 Q272 186 278 179" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+  <!-- Smile line -->
+  <path d="M250 182 Q262 190 275 182" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+  <!-- ═══ EARS ═══ -->
+  <path d="M222 148 Q215 150 214 158 Q215 166 222 168" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M298 146 Q305 148 306 156 Q305 164 298 166" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- ═══ NECK ═══ -->
+  <path d="M248 194 L245 215" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M272 193 L275 215" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ═══ POLO SHIRT ═══ -->
+  <!-- Collar (V-shape, polo style) -->
+  <path d="M238 218 L250 210 L260 222 L270 210 L282 218" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Collar flaps -->
+  <path d="M250 210 L248 218 M270 210 L272 218" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Left shoulder + sleeve -->
+  <path d="M238 218 Q215 225 200 238 Q190 248 188 262 Q186 275 192 285"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Sleeve hem -->
+  <path d="M192 285 Q198 288 208 285" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Right shoulder + sleeve -->
+  <path d="M282 218 Q305 225 320 238 Q330 248 332 262 Q334 275 328 288"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Sleeve hem -->
+  <path d="M328 288 Q322 291 312 288" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Torso left side -->
+  <path d="M208 285 Q205 320 208 355 Q210 375 215 395"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Torso right side -->
+  <path d="M312 288 Q315 320 312 355 Q310 375 305 395"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Shirt bottom hem -->
+  <path d="M215 395 Q235 400 260 398 Q285 400 305 395"
+    stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Shirt wrinkle lines (subtle) -->
+  <path d="M240 280 Q250 285 260 280 M235 320 Q248 325 260 320 M270 340 Q280 345 290 340"
+    stroke="#1A1A1A" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- ═══ BAG STRAP (diagonal, shoulder to hip) ═══ -->
+  <path d="M295 222 Q280 280 268 340 Q258 380 250 410"
+    stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M290 222 Q275 280 263 340 Q253 380 245 410"
+    stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- ═══ BAG (at hip) ═══ -->
+  <path d="M238 405 Q232 410 230 425 Q230 445 245 450 Q260 452 268 445 Q272 435 270 420 Q268 410 262 405"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" fill="#1A1A1A" fill-opacity="0.08"/>
+  <!-- Bag flap -->
+  <path d="M235 420 Q250 425 265 420" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Bag clasp -->
+  <circle cx="250" cy="432" r="3" stroke="#1A1A1A" stroke-width="1.5"/>
+
+  <!-- ═══ LEFT ARM (thumb hooked on strap) ═══ -->
+  <path d="M192 285 Q185 310 183 335 Q182 350 185 360 Q188 368 193 365"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Hand gripping strap -->
+  <path d="M193 365 Q196 360 198 362 Q200 365 197 368 Q193 370 190 367"
+    stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <!-- Thumb on strap -->
+  <path d="M195 358 Q200 355 202 358" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- ═══ RIGHT ARM (hanging relaxed) ═══ -->
+  <path d="M328 288 Q335 315 333 345 Q332 370 328 390"
+    stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Hand (loose, fingers suggested) -->
+  <path d="M328 390 Q325 398 327 403 Q330 407 333 404 Q336 400 334 395 Q332 392 328 390"
+    stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <path d="M330 395 Q332 400 330 403" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- ═══ WATCH (left wrist) ═══ -->
+  <rect x="179" y="348" width="10" height="14" rx="3" stroke="#1A1A1A" stroke-width="1.8" fill="none"/>
+  <line x1="184" y1="348" x2="184" y2="344" stroke="#1A1A1A" stroke-width="1.5"/>
+  <line x1="184" y1="362" x2="184" y2="366" stroke="#1A1A1A" stroke-width="1.5"/>
+
+  <!-- ═══ JEANS (solid black fill — key style element) ═══ -->
+  <!-- Left leg -->
+  <path d="M215 395 Q212 430 210 470 Q208 510 207 545 Q206 565 205 580
+           L225 582 Q224 565 224 545 Q225 510 228 470 Q230 440 235 410 Q240 400 245 398"
+    fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+
+  <!-- Right leg -->
+  <path d="M275 398 Q280 400 285 410 Q290 440 292 470 Q294 510 295 545 Q296 565 296 580
+           L316 580 Q315 565 314 545 Q312 510 310 470 Q308 430 305 395"
+    fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1"/>
+
+  <!-- Crotch connection -->
+  <path d="M245 398 Q260 415 275 398" stroke="#1A1A1A" stroke-width="2" fill="#1A1A1A"/>
+
+  <!-- Jean wrinkle highlights (white lines on dark) -->
+  <path d="M218 450 Q222 455 220 460 M215 500 Q220 505 218 510 M290 455 Q294 460 292 465 M295 510 Q300 515 298 520"
+    stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.25"/>
+
+  <!-- ═══ SHOES ═══ -->
+  <!-- Left shoe -->
+  <path d="M200 580 Q195 582 193 588 Q192 595 200 598 Q210 600 225 598 Q230 595 228 588 Q226 582 225 580"
+    fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1.5"/>
+  <!-- Right shoe -->
+  <path d="M292 580 Q288 582 286 588 Q285 595 292 598 Q302 600 316 598 Q322 595 320 588 Q318 582 316 580"
+    fill="#1A1A1A" stroke="#1A1A1A" stroke-width="1.5"/>
+
+  <!-- Shoe detail lines -->
+  <path d="M200 592 Q212 590 225 592" stroke="white" stroke-width="0.8" opacity="0.3"/>
+  <path d="M292 592 Q304 590 316 592" stroke="white" stroke-width="0.8" opacity="0.3"/>
+
+  <!-- ═══ GROUND SHADOW (subtle) ═══ -->
+  <ellipse cx="260" cy="602" rx="80" ry="6" fill="#1A1A1A" opacity="0.06"/>
+
+</svg>
