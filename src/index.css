@@ -12,6 +12,7 @@
   --text-muted: #737373;
   --dot-color: rgba(255,255,255,0.25);
   --accent: #2D5BFF;
+  --label-accent: #FFD93D;
 }
 
 [data-theme="light"] {
@@ -25,6 +26,7 @@
   --text-muted: #999999;
   --dot-color: #CCCCCC;
   --accent: #2D5BFF;
+  --label-accent: #B8860B;
 }
 
 body {

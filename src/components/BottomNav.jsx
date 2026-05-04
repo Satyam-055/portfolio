@@ -325,6 +325,20 @@ export default function BottomNav() {
   const waveRef = useRef(null)
   const { theme, toggleTheme } = useTheme()
 
+  // Cat visibility — persisted to localStorage, defaults to visible
+  const [catVisible, setCatVisible] = useState(() => {
+    try {
+      const saved = localStorage.getItem('catVisible')
+      return saved === null ? true : saved === 'true'
+    } catch {
+      return true
+    }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('catVisible', String(catVisible)) } catch {}
+  }, [catVisible])
+  const toggleCat = () => setCatVisible((v) => !v)
+
 
   const isHobby = location.pathname === '/hobby'
   // forceDark: on hobby page always dark; otherwise follow theme
@@ -364,9 +378,11 @@ export default function BottomNav() {
 
       <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
         {/* Claude pixel animation */}
-        <div className="absolute bottom-full left-[-32px] mb-[-16px]">
-          <ClaudePixel size={3} detective={location.pathname === '/hobby'} />
-        </div>
+        {catVisible && (
+          <div className="absolute bottom-full left-[-32px] mb-[-16px]">
+            <ClaudePixel size={3} detective={location.pathname === '/hobby'} />
+          </div>
+        )}
 
         {/* Desktop tray */}
         <AnimatePresence>
@@ -385,6 +401,56 @@ export default function BottomNav() {
           onMouseEnter={() => setPillHovered(true)}
           onMouseLeave={() => setPillHovered(false)}
         >
+          {/* Cat visibility toggle — pixel cat lives in the thumb (uses real palette from ClaudePixel) */}
+          <button
+            onClick={toggleCat}
+            role="switch"
+            aria-checked={catVisible}
+            aria-label={catVisible ? 'Hide cat' : 'Show cat'}
+            title={catVisible ? 'Hide cat' : 'Show cat'}
+            className={`relative shrink-0 w-[40px] h-[22px] rounded-full transition-colors duration-300 ${
+              catVisible
+                ? 'bg-[#c4856a]'
+                : forceDark
+                  ? 'bg-neutral-700'
+                  : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] flex items-center justify-center transition-transform duration-300 ${
+                catVisible ? 'translate-x-[18px]' : 'translate-x-0'
+              }`}
+            >
+              {/* Pulled directly from ClaudePixel.drawBody — same shape, same palette */}
+              <svg width="14" height="11" viewBox="0 0 10 8" shapeRendering="crispEdges">
+                {/* Ears */}
+                <rect x="2" y="0" width="1" height="1" fill="#c4856a" />
+                <rect x="7" y="0" width="1" height="1" fill="#c4856a" />
+                {/* Head row 1 — top of head */}
+                <rect x="2" y="1" width="7" height="1" fill="#c4856a" />
+                {/* Head row 2 with eyes */}
+                <rect x="1" y="2" width="9" height="1" fill="#c4856a" />
+                <rect x="3" y="2" width="1" height="1" fill="#1a1a1a" />
+                <rect x="6" y="2" width="1" height="1" fill="#1a1a1a" />
+                {/* Face row with nose */}
+                <rect x="1" y="3" width="9" height="1" fill="#c4856a" />
+                <rect x="4" y="3" width="2" height="1" fill="#8a5a42" />
+                {/* Torso top — lighter */}
+                <rect x="1" y="4" width="9" height="1" fill="#d49a82" />
+                {/* Torso */}
+                <rect x="1" y="5" width="9" height="1" fill="#c4856a" />
+                <rect x="3" y="5" width="4" height="1" fill="#d49a82" />
+                <rect x="1" y="6" width="9" height="1" fill="#c4856a" />
+                <rect x="3" y="6" width="4" height="1" fill="#d49a82" />
+                {/* Torso bottom */}
+                <rect x="2" y="7" width="8" height="1" fill="#c4856a" />
+              </svg>
+            </span>
+          </button>
+
+          {/* Divider after cat toggle */}
+          <div className={`w-px h-4 mx-1 opacity-20 transition-colors duration-500 ${forceDark ? 'bg-neutral-400' : 'bg-gray-400'}`} />
+
           <NavLink to="/" end className={tabClass}>
             {({ isActive }) => (<><IconWork active={isActive} /><span className="hidden sm:inline">Work</span></>)}
           </NavLink>

@@ -23,3 +23,4 @@ portfolio-backup-*
 *.njsproj
 *.sln
 *.sw?
+.vercel

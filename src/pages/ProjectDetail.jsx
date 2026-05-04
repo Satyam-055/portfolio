@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
@@ -13,6 +14,7 @@ function PreviewBlock({ color, type, className = '', style = {} }) {
     '#E8DBFA': '#8b5cf6',
     '#FFE0E0': '#ef4444',
     '#D6F5EC': '#14b8a6',
+    '#E5EAFC': '#2E53E3',
   }
   const accent = barColors[color] || '#6366f1'
 
@@ -119,6 +121,7 @@ function MiniPreview({ color, type, className = '' }) {
     '#E8DBFA': '#8b5cf6',
     '#FFE0E0': '#ef4444',
     '#D6F5EC': '#14b8a6',
+    '#E5EAFC': '#2E53E3',
   }
   const accent = barColors[color] || '#6366f1'
 
@@ -147,12 +150,106 @@ function MiniPreview({ color, type, className = '' }) {
   )
 }
 
+/* ─── DS Figure (case study images) ─────────────────────── */
+
+function DSFigure({ src, alt, caption, wide = false }) {
+  if (wide) {
+    return (
+      <figure className="my-6">
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            className="block min-w-[900px] sm:min-w-0 w-full h-auto"
+          />
+        </div>
+        {caption && (
+          <figcaption
+            className="text-[12px] italic text-[var(--text-muted)] mt-2"
+            style={{ fontFamily: "'Work Sans', sans-serif" }}
+          >
+            {caption}
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
+  return (
+    <figure className="my-6">
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="w-full h-auto rounded-xl border border-[var(--border)]"
+      />
+      {caption && (
+        <figcaption
+          className="text-[12px] italic text-[var(--text-muted)] mt-2"
+          style={{ fontFamily: "'Work Sans', sans-serif" }}
+        >
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+/* ─── Token Chips ───────────────────────────────────────── */
+
+function ColorChip({ label, color }) {
+  return (
+    <div className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)]">
+      <span
+        className="w-5 h-5 rounded-md border border-[var(--border)] shrink-0"
+        style={{ backgroundColor: color }}
+        title={color}
+      />
+      <span className="text-[12px] text-[var(--text-primary)] font-medium">{label}</span>
+    </div>
+  )
+}
+
+function SizeChip({ label }) {
+  return (
+    <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] min-w-[44px]">
+      <span className="text-[12px] text-[var(--text-primary)] font-medium">{label}</span>
+    </div>
+  )
+}
+
+/* ─── Component Tile (uniform for the tab grid) ─────────── */
+
+function ComponentTile({ name, body, src, alt, wide = false }) {
+  return (
+    <article className="border border-[var(--border)] rounded-xl overflow-hidden flex flex-col">
+      <div className={`${wide ? 'aspect-[16/9]' : 'aspect-[4/3]'} bg-white flex items-center justify-center p-4`}>
+        <img
+          src={src}
+          alt={alt || name}
+          loading="lazy"
+          className="max-w-full max-h-full w-auto h-auto object-contain"
+        />
+      </div>
+      <div className="px-5 py-4 bg-[#F5F5F5] border-t border-[#E6E6E6]">
+        <p
+          className="text-[14px] font-semibold text-[#1A1A1A] mb-1"
+          style={{ fontFamily: "'Work Sans', sans-serif" }}
+        >
+          {name}
+        </p>
+        {body && <p className="text-[12.5px] text-[#6D6D6D] leading-[1.6]">{body}</p>}
+      </div>
+    </article>
+  )
+}
+
 /* ─── Section Heading ───────────────────────────────────── */
 
 function SectionLabel({ children }) {
   return (
     <p
-      className="text-[13px] italic text-[var(--text-muted)] mb-3"
+      className="text-[14px] italic font-medium text-[var(--label-accent)] mb-3"
       style={{ fontFamily: "'Work Sans', sans-serif" }}
     >
       {children}
@@ -324,7 +421,12 @@ export default function ProjectDetail() {
   const navigate = useNavigate()
   const project = projects.find((p) => p.id === id) || projects[0]
   const otherProjects = projects.filter((p) => p.id !== project.id).slice(0, 3)
-  const content = getCaseStudyContent(project)
+  const rich = project.caseStudy
+  const content = rich || getCaseStudyContent(project)
+  const [activeCat, setActiveCat] = useState(
+    rich && content.componentCategories ? content.componentCategories[0].id : null
+  )
+  const activeCategory = content.componentCategories?.find((c) => c.id === activeCat)
 
   const mono = { fontFamily: "'JetBrains Mono', monospace" }
   const heading = { fontFamily: "'Work Sans', sans-serif" }
@@ -409,111 +511,464 @@ export default function ProjectDetail() {
       <div className="max-w-6xl mx-auto px-6 mt-12 flex flex-col lg:flex-row gap-12">
         {/* ─ Left: Main Content ─ */}
         <div className="flex-1 min-w-0">
-          {/* Overview */}
-          <Reveal>
-            <SectionLabel>Overview</SectionLabel>
-            <p className="text-[var(--text-secondary)] text-[16px] leading-[1.75] mb-12">
-              {content.overview}
-            </p>
-          </Reveal>
+          {rich ? (
+            <>
+              {/* TL;DR */}
+              <Reveal>
+                <div className="border-l-2 border-[var(--accent)] pl-5 py-1 mb-12">
+                  <p className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] mb-2" style={mono}>TL;DR</p>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.7]">
+                    {content.tldr}
+                  </p>
+                </div>
+              </Reveal>
 
-          {/* The Challenge */}
-          <Reveal>
-            <SectionLabel>The challenge</SectionLabel>
-            <div className="space-y-5 mb-12">
-              {content.challenge.map((para, i) => (
-                <p
-                  key={i}
-                  className="text-[var(--text-secondary)] text-[15px] leading-[1.8]"
-                >
-                  {para}
+              {/* Overview / The fracture opening */}
+              <Reveal>
+                <SectionLabel>The fracture</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[16px] leading-[1.75] mb-6">
+                  {content.overview}
                 </p>
-              ))}
-            </div>
-          </Reveal>
+                <div className="space-y-5 mb-12">
+                  {content.challenge.map((para, i) => (
+                    <p key={i} className="text-[var(--text-secondary)] text-[15px] leading-[1.8]">
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </Reveal>
 
-          {/* Process */}
-          <Reveal>
-            <SectionLabel>Process</SectionLabel>
-            <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
-              {content.processIntro}
-            </p>
-          </Reveal>
+              {/* Research — competitor matrix */}
+              <Reveal>
+                <SectionLabel>Research</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.competitorIntro}
+                </p>
+                <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden mb-12">
+                  {content.competitorMatrix.map((row, i) => (
+                    <div
+                      key={row.competitor}
+                      className={`flex flex-col sm:flex-row sm:items-center px-5 py-4 gap-3 sm:gap-6 ${
+                        i !== content.competitorMatrix.length - 1 ? 'border-b border-[#E6E6E6]' : ''
+                      }`}
+                    >
+                      <div className="sm:w-[200px] shrink-0 flex items-center gap-3">
+                        {row.logo && (
+                          <img
+                            src={row.logo}
+                            alt={`${row.competitor} logo`}
+                            loading="lazy"
+                            className="w-8 h-8 rounded-md object-contain bg-white"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          />
+                        )}
+                        <p className="text-[14px] font-semibold text-[#1A1A1A]" style={heading}>
+                          {row.competitor}
+                        </p>
+                      </div>
+                      <p className="text-[14px] text-[#6D6D6D] leading-[1.6]">{row.learning}</p>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
 
-          <Reveal>
-            <PreviewBlock
-              color={project.previewColor}
-              type={project.previewType}
-              className="h-[200px] sm:h-[260px] mb-6"
-            />
-          </Reveal>
+              {/* The stance — doctrine */}
+              <Reveal>
+                <SectionLabel>The stance</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.doctrineIntro}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-12">
+                  {content.doctrine.map((rule) => (
+                    <div key={rule.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
+                      {rule.icon && (
+                        <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center mb-4 p-2">
+                          <img
+                            src={rule.icon}
+                            alt=""
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      )}
+                      <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
+                        {rule.title}
+                      </p>
+                      <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
 
-          <Reveal>
-            <ol className="space-y-3 mb-12">
-              {content.processSteps.map((step, i) => (
-                <li key={i} className="flex gap-3 text-[15px] leading-[1.7]">
-                  <span
-                    className="text-[13px] font-semibold text-[var(--text-muted)] mt-0.5 shrink-0 w-5 text-right"
-                    style={mono}
-                  >
-                    {i + 1}.
-                  </span>
-                  <span className="text-[var(--text-secondary)]">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </Reveal>
+              {/* Foundations */}
+              <Reveal>
+                <SectionLabel>Foundations</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.foundationsIntro}
+                </p>
+                <div className="space-y-6 mb-12">
+                  {content.foundations.map((f) => (
+                    <div key={f.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
+                      <p className="text-[14px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
+                        {f.title}
+                      </p>
+                      <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7] mb-3">{f.body}</p>
+                      {f.colorGroups && (
+                        <div className="space-y-3 mt-4">
+                          {f.colorGroups.map((group) => (
+                            <div key={group.label}>
+                              <p className="text-[11px] uppercase tracking-wider text-[var(--text-muted)] mb-2" style={mono}>
+                                {group.label}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {group.items.map((c) => (
+                                  <ColorChip key={c.label} label={c.label} color={c.color} />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {f.sizeChips && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {f.sizeChips.map((s) => (
+                            <SizeChip key={s} label={s} />
+                          ))}
+                        </div>
+                      )}
+                      {f.image && (
+                        <div className="mt-4">
+                          <img
+                            src={f.image.src}
+                            alt={f.image.alt}
+                            loading="lazy"
+                            className="w-full h-auto rounded-lg border border-[var(--border)]"
+                          />
+                        </div>
+                      )}
+                      {f.typeSamples && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {f.typeSamples.map((t) => (
+                            <div
+                              key={t.family}
+                              className="inline-flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--bg)]"
+                            >
+                              <span
+                                className="text-[22px] text-[var(--text-primary)] leading-none"
+                                style={{
+                                  fontFamily:
+                                    t.family === 'Work Sans'
+                                      ? "'Work Sans', sans-serif"
+                                      : "'Inter', sans-serif",
+                                }}
+                              >
+                                {t.family}
+                              </span>
+                              <span
+                                className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]"
+                                style={mono}
+                              >
+                                {t.usage}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {f.namingHint && (
+                        <p className="mt-3 text-[12px] text-[var(--text-muted)]" style={mono}>
+                          {f.namingHint}
+                        </p>
+                      )}
+                      {f.shadowDemo && (
+                        <div className="mt-4 flex items-center justify-center bg-[var(--bg)] py-10 rounded-lg border border-[var(--border)]">
+                          <div
+                            className="w-32 h-20 rounded-lg bg-white"
+                            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}
+                          />
+                        </div>
+                      )}
+                      {f.tokenExamples && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {f.tokenExamples.map((t) => (
+                            <span
+                              key={t}
+                              className="inline-flex items-center px-3 py-1.5 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[12px] text-[var(--text-primary)]"
+                              style={mono}
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
 
-          {/* Solution */}
-          <Reveal>
-            <SectionLabel>Solution</SectionLabel>
-            <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
-              {content.solutionIntro}
-            </p>
-          </Reveal>
+              {/* The system */}
+              <Reveal>
+                <SectionLabel>The system</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.systemIntro}
+                </p>
+              </Reveal>
 
-          <Reveal>
-            <div className="flex gap-3 mb-6">
-              <MiniPreview
-                color={project.previewColor}
-                type={project.previewType}
-                className="flex-1 h-[56px]"
-              />
-              <MiniPreview
-                color={project.previewColor}
-                type={project.previewType}
-                className="flex-1 h-[56px]"
-              />
-            </div>
-          </Reveal>
+              {content.systemOverview && (
+                <Reveal>
+                  <DSFigure
+                    src={content.systemOverview.src}
+                    alt={content.systemOverview.alt}
+                    caption={content.systemOverview.caption}
+                    wide={content.systemOverview.wide}
+                  />
+                </Reveal>
+              )}
 
-          <Reveal>
-            <PreviewBlock
-              color={project.previewColor}
-              type={project.previewType}
-              className="h-[200px] sm:h-[280px] mb-8"
-            />
-          </Reveal>
+              {/* Tabbed component browser */}
+              {content.componentCategories && activeCategory && (
+                <Reveal>
+                  <div className="mb-16">
+                    {/* Tab bar — sticky pill style */}
+                    <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-[var(--bg)]/90 backdrop-blur-sm mb-8">
+                      <div
+                        className="flex gap-2 overflow-x-auto"
+                        role="tablist"
+                      >
+                        {content.componentCategories.map((cat) => {
+                          const isActive = cat.id === activeCat
+                          return (
+                            <button
+                              key={cat.id}
+                              role="tab"
+                              aria-selected={isActive}
+                              onClick={() => setActiveCat(cat.id)}
+                              className={`px-4 py-2 text-[13px] font-medium whitespace-nowrap rounded-full border transition-all ${
+                                isActive
+                                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)]'
+                              }`}
+                              style={heading}
+                            >
+                              {cat.label}
+                              {cat.items.length > 0 && (
+                                <span
+                                  className={`ml-1.5 text-[10px] ${
+                                    isActive ? 'text-white/70' : 'text-[var(--text-muted)]'
+                                  }`}
+                                  style={mono}
+                                >
+                                  {cat.items.length}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
 
-          {/* Stats */}
-          <Reveal>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-              {content.stats.map((stat, i) => (
-                <StatCard key={i} value={stat.value} label={stat.label} />
-              ))}
-            </div>
-          </Reveal>
+                    {/* Active category */}
+                    <div role="tabpanel">
+                      <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-8">
+                        {activeCategory.description}
+                      </p>
 
-          {/* Results */}
-          <Reveal>
-            <SectionLabel>Results</SectionLabel>
-            <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-8">
-              {content.results}
-            </p>
-          </Reveal>
+                      {activeCategory.body && (
+                        <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-8">
+                          {activeCategory.body}
+                        </p>
+                      )}
 
-          {/* Divider */}
-          <div className="border-t border-[var(--border)] my-14" />
+                      {activeCategory.items.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                          {activeCategory.items.map((item) => (
+                            <ComponentTile
+                              key={item.src}
+                              name={item.name}
+                              body={item.body}
+                              src={item.src}
+                              alt={item.name}
+                              wide={item.wide}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Building alongside agents */}
+              {content.agents && (
+                <Reveal>
+                  <SectionLabel>Building alongside agents</SectionLabel>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                    {content.agentsIntro}
+                  </p>
+                  <div className="space-y-3 mb-6">
+                    {content.agents.map((a) => (
+                      <div key={a.name} className="flex flex-col sm:flex-row gap-1 sm:gap-5 px-5 py-4 border border-[var(--border)] rounded-xl">
+                        <p className="sm:w-[140px] shrink-0 text-[13px] font-semibold text-[var(--accent)]" style={mono}>
+                          {a.name}
+                        </p>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{a.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-12">
+                    {content.agentsClose}
+                  </p>
+                </Reveal>
+              )}
+
+              {/* Stats */}
+              <Reveal>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+                  {content.stats.map((stat, i) => (
+                    <StatCard key={i} value={stat.value} label={stat.label} />
+                  ))}
+                </div>
+              </Reveal>
+
+              {/* Results */}
+              <Reveal>
+                <SectionLabel>Results</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-12">
+                  {content.results}
+                </p>
+              </Reveal>
+
+              {/* Reflection */}
+              <Reveal>
+                <SectionLabel>Reflection</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.reflectionIntro}
+                </p>
+                <div className="space-y-4 mb-8">
+                  {content.reflection.map((r) => (
+                    <div key={r.title} className="border-l-2 border-[var(--border)] pl-5">
+                      <p className="text-[14px] font-semibold text-[var(--text-primary)] mb-1" style={heading}>
+                        {r.title}
+                      </p>
+                      <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{r.body}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-8">
+                  {content.reflectionClose}
+                </p>
+              </Reveal>
+
+              {/* Divider */}
+              <div className="border-t border-[var(--border)] my-14" />
+            </>
+          ) : (
+            <>
+              {/* Overview */}
+              <Reveal>
+                <SectionLabel>Overview</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[16px] leading-[1.75] mb-12">
+                  {content.overview}
+                </p>
+              </Reveal>
+
+              {/* The Challenge */}
+              <Reveal>
+                <SectionLabel>The challenge</SectionLabel>
+                <div className="space-y-5 mb-12">
+                  {content.challenge.map((para, i) => (
+                    <p
+                      key={i}
+                      className="text-[var(--text-secondary)] text-[15px] leading-[1.8]"
+                    >
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </Reveal>
+
+              {/* Process */}
+              <Reveal>
+                <SectionLabel>Process</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.processIntro}
+                </p>
+              </Reveal>
+
+              <Reveal>
+                <PreviewBlock
+                  color={project.previewColor}
+                  type={project.previewType}
+                  className="h-[200px] sm:h-[260px] mb-6"
+                />
+              </Reveal>
+
+              <Reveal>
+                <ol className="space-y-3 mb-12">
+                  {content.processSteps.map((step, i) => (
+                    <li key={i} className="flex gap-3 text-[15px] leading-[1.7]">
+                      <span
+                        className="text-[13px] font-semibold text-[var(--text-muted)] mt-0.5 shrink-0 w-5 text-right"
+                        style={mono}
+                      >
+                        {i + 1}.
+                      </span>
+                      <span className="text-[var(--text-secondary)]">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </Reveal>
+
+              {/* Solution */}
+              <Reveal>
+                <SectionLabel>Solution</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  {content.solutionIntro}
+                </p>
+              </Reveal>
+
+              <Reveal>
+                <div className="flex gap-3 mb-6">
+                  <MiniPreview
+                    color={project.previewColor}
+                    type={project.previewType}
+                    className="flex-1 h-[56px]"
+                  />
+                  <MiniPreview
+                    color={project.previewColor}
+                    type={project.previewType}
+                    className="flex-1 h-[56px]"
+                  />
+                </div>
+              </Reveal>
+
+              <Reveal>
+                <PreviewBlock
+                  color={project.previewColor}
+                  type={project.previewType}
+                  className="h-[200px] sm:h-[280px] mb-8"
+                />
+              </Reveal>
+
+              {/* Stats */}
+              <Reveal>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+                  {content.stats.map((stat, i) => (
+                    <StatCard key={i} value={stat.value} label={stat.label} />
+                  ))}
+                </div>
+              </Reveal>
+
+              {/* Results */}
+              <Reveal>
+                <SectionLabel>Results</SectionLabel>
+                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-8">
+                  {content.results}
+                </p>
+              </Reveal>
+
+              {/* Divider */}
+              <div className="border-t border-[var(--border)] my-14" />
+            </>
+          )}
         </div>
 
         {/* ─ Right: Metadata Sidebar ─ */}

@@ -1,15 +1,35 @@
 /**
  * ClaudePixel — Pixel animation of Claude the cat.
  * 3-act loop: 1) Code on laptop → 2) Take a photo → 3) Ride a red bike → repeat
+ * Drag the cat off the navbar to launch it; it parachutes back from the sky.
  */
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 
 export default function ClaudePixel({ size = 6, detective = false }) {
   const canvasRef = useRef(null)
+  const slotRef = useRef(null)        // empty div in flow at the navbar — holds layout space
+  const overlayRef = useRef(null)     // portal'd motion.div containing the canvas
   const rafRef = useRef(null)
   const detectiveRef = useRef(detective)
   detectiveRef.current = detective
+
+  // ── State machine: normal | drag | fall | gap | freefall | deploy | descent | land
+  const [mode, setMode] = useState('normal')
+  const [target, setTarget] = useState({ x: 0, y: 0 })
+
+  const modeRef = useRef('normal')
+  modeRef.current = mode
+  const targetRef = useRef(target)
+  targetRef.current = target
+
+  const homeRef = useRef({ x: 0, y: 0 })
+  const dragOffsetRef = useRef({ x: 0, y: 0 })
+  const wasDraggedRef = useRef(false)
+  const parachuteActiveRef = useRef(false)
+  parachuteActiveRef.current = mode === 'deploy' || mode === 'descent' || mode === 'land'
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -36,6 +56,9 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       wheel: '#333', tire: '#222', spoke: '#555', hub: '#888',
       headlight: '#ffee88', headlightR: '#aaa',
       seat: '#1a1a1a', seatDk: '#111',
+      // Parachute
+      chute: '#cc2222', chuteDk: '#991111', chuteHi: '#dd3333',
+      chuteWhite: '#f5f5f5', string: '#1a1a1a',
     }
 
     // ─── State ───────────────────────────────────────────
@@ -283,10 +306,97 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       }
     }
 
+    // ─── Parachute (drawn in canvas pixel-space) ────────
+    // Canopy is a stepped dome from row 4 (peak) down to row 12 (skirt).
+    // openT = 0..1, the deploy progress (controls how wide the canopy is).
+    function drawParachute(openT, swayPx) {
+      const sx = swayPx | 0
+      // Ramp the canopy width with openT for a "pop open" feel.
+      const t = Math.min(1, Math.max(0, openT))
+      const rows = [
+        [4,  36, 40, P.chuteHi],
+        [5,  33, 43, P.chute],
+        [6,  31, 45, P.chute],
+        [7,  29, 47, P.chute],
+        [8,  27, 49, P.chute],
+        [9,  25, 51, P.chute],
+        [10, 23, 53, P.chute],
+        [11, 22, 54, P.chute],
+        [12, 22, 54, P.chuteDk], // skirt
+      ]
+      for (const [r, c1Full, c2Full, color] of rows) {
+        const cmid = (c1Full + c2Full) / 2
+        const halfW = ((c2Full - c1Full) / 2) * t
+        const c1 = Math.round(cmid - halfW)
+        const c2 = Math.round(cmid + halfW)
+        for (let c = c1; c <= c2; c++) px(c + sx, r, color)
+      }
+      // White panel separators (only when mostly open)
+      if (t > 0.7) {
+        for (let r = 6; r <= 11; r++) {
+          px(30 + sx, r, P.chuteWhite)
+          px(38 + sx, r, P.chuteWhite)
+          px(46 + sx, r, P.chuteWhite)
+        }
+        px(38 + sx, 4, P.chuteWhite); px(38 + sx, 5, P.chuteWhite)
+      }
+      // Strings — only attach once the canopy is mostly open
+      if (t > 0.5) {
+        const ends = [
+          [22, 13, 33, 27],
+          [31, 13, 35, 27],
+          [45, 13, 41, 27],
+          [54, 13, 43, 27],
+        ]
+        for (const [x1, y1, x2, y2] of ends) {
+          const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))
+          for (let i = 0; i <= steps; i++) {
+            const k = i / steps
+            const sxp = Math.round(x1 + (x2 - x1) * k) + sx
+            const syp = Math.round(y1 + (y2 - y1) * k)
+            px(sxp, syp, P.string)
+          }
+        }
+      }
+    }
+
+    // Skydiving cat — arms spread wide, free-falling pose (no parachute)
+    function drawSkydiveCat() {
+      const wob = Math.floor(frame / 3) % 2
+      const { x, y } = drawBody(CX, CY + wob, 0, 'right')
+      if (detectiveRef.current) drawHat(x, y)
+      // Arms thrown out to the sides
+      px(x - 1, y + 5, P.bodyDk); px(x - 2, y + 5, P.body); px(x - 3, y + 5 + wob, P.bodyDk2)
+      px(x + 10, y + 5, P.bodyDk); px(x + 11, y + 5, P.body); px(x + 12, y + 5 + wob, P.bodyDk2)
+      // Legs spread
+      px(x + 1, y + 8, P.bodyDk); px(x, y + 9, P.bodyDk2)
+      px(x + 4, y + 8, P.bodyDk); px(x + 4, y + 9, P.bodyDk2)
+      px(x + 7, y + 8, P.bodyDk); px(x + 7, y + 9, P.bodyDk2)
+      px(x + 10, y + 8, P.bodyDk); px(x + 11, y + 9, P.bodyDk2)
+    }
+
+    // Hanging cat — arms stretched up holding the strings
+    function drawHangingCat() {
+      const breathY = Math.sin(frame * 0.04) > 0.6 ? -1 : 0
+      const { x, y } = drawBody(CX, CY, breathY, 'right')
+      if (detectiveRef.current) drawHat(x, y)
+      // Both arms reach straight up to grab the strings
+      px(x + 1, y + 4, P.bodyDk)
+      px(x + 1, y + 3, P.bodyDk)
+      px(x + 1, y + 2, P.body)
+      px(x + 9, y + 4, P.bodyDk)
+      px(x + 9, y + 3, P.bodyDk)
+      px(x + 9, y + 2, P.body)
+      // Legs hanging down loose
+      drawLegs(x, y, false, 0)
+    }
+
     // ─── Click handler ──────────────────────────────────
     function handleClick() {
-      if (tumble) return // already tumbling
-      if (phase === 'idle') return // nothing to interrupt
+      if (wasDraggedRef.current) return       // suppress click after a drag
+      if (modeRef.current !== 'normal') return // ignore during fall/parachute/etc.
+      if (tumble) return
+      if (phase === 'idle') return
       tumble = true
       tumbleT = 0
       tumbleAct = act
@@ -369,10 +479,47 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       }
     }
 
+    // Track when parachute mode started so we can ramp the canopy open.
+    let parachuteStartFrame = -1
+
     // ─── Render ──────────────────────────────────────────
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       const breathY = Math.sin(frame * 0.04) > 0.6 ? -1 : 0
+
+      // ── DEPLOY / DESCENT / LAND (parachute visible) ──
+      if (parachuteActiveRef.current) {
+        if (parachuteStartFrame < 0) parachuteStartFrame = frame
+        const t = (frame - parachuteStartFrame) / 12 // ~200ms canopy ramp
+        const sway = Math.sin(frame * 0.06) * 0.6
+        drawParachute(t, sway)
+        drawHangingCat()
+        frame++
+        rafRef.current = requestAnimationFrame(render)
+        return
+      } else {
+        parachuteStartFrame = -1
+      }
+
+      // ── DRAG (held by cursor) ──
+      if (modeRef.current === 'drag') {
+        const { x, y } = drawBody(CX, CY, breathY, 'right')
+        if (detectiveRef.current) drawHat(x, y)
+        drawLegs(x, y, false, 0)
+        // Arms drooping (being held)
+        px(x + 1, y + 6, P.bodyDk); px(x + 9, y + 6, P.bodyDk)
+        frame++
+        rafRef.current = requestAnimationFrame(render)
+        return
+      }
+
+      // ── FALL / GAP / FREEFALL (no parachute yet — skydive pose) ──
+      if (modeRef.current === 'fall' || modeRef.current === 'gap' || modeRef.current === 'freefall') {
+        drawSkydiveCat()
+        frame++
+        rafRef.current = requestAnimationFrame(render)
+        return
+      }
 
       // ── TUMBLE STATE ──
       if (tumble) {
@@ -496,10 +643,193 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     }
   }, [size])
 
+  // ─── Track the slot's viewport position as "home" ──────────────
+  // The slot is an empty div in the navbar that reserves space. The actual
+  // cat is portal'd to <body> at position:fixed, and animates to the slot's
+  // viewport coordinates. This keeps the cat's positioning context stable
+  // through every phase — no relative↔fixed switching.
+  useLayoutEffect(() => {
+    function updateHome() {
+      const slot = slotRef.current
+      if (!slot) return
+      const r = slot.getBoundingClientRect()
+      const next = { x: Math.round(r.left), y: Math.round(r.top) }
+      homeRef.current = next
+      if (modeRef.current === 'normal') {
+        setTarget(next)
+      }
+    }
+    updateHome()
+    window.addEventListener('resize', updateHome)
+    window.addEventListener('scroll', updateHome, true)
+    return () => {
+      window.removeEventListener('resize', updateHome)
+      window.removeEventListener('scroll', updateHome, true)
+    }
+  }, [])
+
+  // ─── Pointer / drag handling ────────────────────────
+  // Mode stays 'normal' until movement crosses the threshold; only THEN do we
+  // switch into 'drag'. Pure clicks (no real movement) never enter drag mode,
+  // so the canvas click handler's tumble logic still fires.
+  function handlePointerDown(e) {
+    if (modeRef.current !== 'normal') return
+
+    const startClient = { x: e.clientX, y: e.clientY }
+    let switchedToDrag = false
+    wasDraggedRef.current = false
+
+    function move(ev) {
+      const dx = ev.clientX - startClient.x
+      const dy = ev.clientY - startClient.y
+      if (!switchedToDrag && Math.hypot(dx, dy) > 20) {
+        switchedToDrag = true
+        wasDraggedRef.current = true
+        // dragOffset = where the cursor sits relative to the cat's home origin
+        dragOffsetRef.current = {
+          x: ev.clientX - homeRef.current.x,
+          y: ev.clientY - homeRef.current.y,
+        }
+        setMode('drag')
+      }
+      if (switchedToDrag) {
+        setTarget({
+          x: Math.round(ev.clientX - dragOffsetRef.current.x),
+          y: Math.round(ev.clientY - dragOffsetRef.current.y),
+        })
+      }
+    }
+
+    function up() {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      if (!switchedToDrag) return // pure click — let canvas click handler fire
+
+      // Determine if the cat ended up still over the navbar — if so, snap back.
+      const navEl = slotRef.current?.parentElement?.parentElement
+      const navRect = navEl?.getBoundingClientRect()
+      const cur = targetRef.current
+      const CANVAS_W = 64 * size
+      const CANVAS_H = 48 * size
+      const catCx = cur.x + CANVAS_W * 0.6
+      const catCy = cur.y + CANVAS_H * 0.75
+      const PAD = 40
+      const stayedOnNav =
+        navRect &&
+        catCx > navRect.left - PAD &&
+        catCx < navRect.right + PAD &&
+        catCy > navRect.top - 100 &&
+        catCy < navRect.bottom + PAD
+      if (stayedOnNav) {
+        setTarget(homeRef.current)
+        setMode('normal')
+      } else {
+        setMode('fall')
+      }
+    }
+
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+  }
+
+  // ─── Sequence orchestration ─────────────────────────
+  //   fall → gap → freefall → deploy → descent → land → normal
+  useEffect(() => {
+    if (mode === 'fall') {
+      // Free-fall straight off the bottom of the viewport.
+      setTarget({ x: targetRef.current.x, y: window.innerHeight + 240 })
+      const t = setTimeout(() => setMode('gap'), 600)
+      return () => clearTimeout(t)
+    }
+    if (mode === 'gap') {
+      // Off-screen pause. Snap above the top edge so the next phase can
+      // physically cross into view from above.
+      setTarget({ x: homeRef.current.x, y: -160 })
+      const t = setTimeout(() => setMode('freefall'), 300)
+      return () => clearTimeout(t)
+    }
+    if (mode === 'freefall') {
+      // Free-fall through the top edge down to mid-screen, accelerating.
+      const midY = Math.round(window.innerHeight * 0.4)
+      setTarget({ x: homeRef.current.x, y: midY })
+      const t = setTimeout(() => setMode('deploy'), 700)
+      return () => clearTimeout(t)
+    }
+    if (mode === 'deploy') {
+      // Hold position while the canopy pops open in the canvas.
+      const t = setTimeout(() => setMode('descent'), 200)
+      return () => clearTimeout(t)
+    }
+    if (mode === 'descent') {
+      // Float gently down to home with the parachute fully open.
+      setTarget({ x: homeRef.current.x, y: homeRef.current.y })
+      const t = setTimeout(() => setMode('land'), 2500)
+      return () => clearTimeout(t)
+    }
+    if (mode === 'land') {
+      const t = setTimeout(() => setMode('normal'), 200)
+      return () => clearTimeout(t)
+    }
+  }, [mode])
+
+  // ─── Per-mode Framer Motion transition ──────────────
+  function transitionFor(m) {
+    switch (m) {
+      case 'fall':     return { duration: 0.6, ease: [0.5, 0, 0.85, 0.4] }    // gravity ease-in
+      case 'gap':      return { duration: 0 }                                  // instant snap
+      case 'freefall': return { duration: 0.7, ease: [0.5, 0, 0.85, 0.4] }    // gravity ease-in
+      case 'deploy':   return { duration: 0 }                                  // hold
+      case 'descent':  return { duration: 2.5, ease: [0.42, 0.4, 0.58, 0.6] } // near-linear glide
+      case 'land':     return { duration: 0.2, ease: 'easeOut' }
+      case 'drag':     return { duration: 0 }                                  // instant follow
+      default:         return { duration: 0 }                                  // normal: snap to home
+    }
+  }
+
+  const W = 64 * size
+  const H = 48 * size
+
+  const overlay = (
+    <motion.div
+      ref={overlayRef}
+      initial={false}
+      animate={{ x: target.x, y: target.y }}
+      transition={transitionFor(mode)}
+      style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        width: W,
+        height: H,
+        zIndex: 60,
+        pointerEvents: mode === 'normal' || mode === 'drag' ? 'auto' : 'none',
+        cursor: mode === 'drag' ? 'grabbing' : 'grab',
+        touchAction: 'none',
+        willChange: 'transform',
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        onPointerDown={handlePointerDown}
+        style={{
+          imageRendering: 'pixelated',
+          display: 'block',
+        }}
+      />
+    </motion.div>
+  )
+
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ imageRendering: 'pixelated', cursor: 'pointer' }}
-    />
+    <>
+      {/* Slot — reserves layout space at the navbar; the actual cat is portal'd. */}
+      <div
+        ref={slotRef}
+        style={{ width: W, height: H, display: 'inline-block' }}
+        aria-hidden="true"
+      />
+      {typeof document !== 'undefined' && createPortal(overlay, document.body)}
+    </>
   )
 }
