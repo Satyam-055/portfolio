@@ -40,8 +40,18 @@ export default function RulePanel({ rule, onClose }) {
 
         {/* Head */}
         <div className="flex justify-between items-center mb-6">
-          <div className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--accent)]">
-            {rule.title}
+          <div className="flex items-center gap-2.5">
+            {rule.icon && (
+              <img
+                src={rule.icon}
+                alt=""
+                aria-hidden="true"
+                className="w-7 h-7 object-contain"
+              />
+            )}
+            <div className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--accent)]">
+              {rule.title}
+            </div>
           </div>
           <button
             onClick={onClose}
