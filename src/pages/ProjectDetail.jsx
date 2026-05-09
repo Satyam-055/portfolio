@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
+import RulePanel from '../components/RulePanel'
 import projects from '../data/projects'
 
 /* ─── Preview Block ─────────────────────────────────────── */
@@ -273,6 +274,134 @@ function StatCard({ value, label }) {
   )
 }
 
+/* ─── Claude mark — Claude Code loading animation ────────── */
+
+// U+FE0E forces text presentation so the glyphs honor `color` instead of rendering as emoji
+const CLAUDE_FRAMES = ['✶︎', '✷︎', '✸︎', '✹︎', '✺︎', '✻︎', '✼︎', '✽︎']
+
+function ClaudeMark({ size = 56 }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setI((p) => (p + 1) % CLAUDE_FRAMES.length), 240)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-block',
+        width: size,
+        height: size,
+        lineHeight: `${size}px`,
+        textAlign: 'center',
+        fontSize: size,
+        color: '#CC785C',
+        fontFamily:
+          "'Apple Color Emoji', 'Segoe UI Symbol', 'Noto Sans Symbols 2', monospace",
+        userSelect: 'none',
+      }}
+    >
+      {CLAUDE_FRAMES[i]}
+    </span>
+  )
+}
+
+/* ─── Pixel agent — cute boxy metal robot ────────────────── */
+
+const METAL = {
+  L: '#D4D4D8', // highlight
+  M: '#71717A', // mid base
+  D: '#3F3F46', // shadow
+  S: '#18181B', // screen face background
+  E: '#F4F4F5', // eyes + smile (warm white)
+  A: '#CC785C', // antenna LED only
+}
+
+// 10 cols × 12 rows, each "pixel" = 10×10 in viewBox 0 0 100 120
+const ROBOT_PIXELS = [
+  // Row 1 — antenna stem
+  [4, 1, 'D'],
+  // Row 2 — head top highlight band
+  [0, 2, 'L'], [1, 2, 'L'], [2, 2, 'L'], [3, 2, 'L'], [4, 2, 'L'],
+  [5, 2, 'L'], [6, 2, 'L'], [7, 2, 'L'], [8, 2, 'L'], [9, 2, 'L'],
+  // Row 3 — head metal
+  [0, 3, 'L'], [1, 3, 'M'], [2, 3, 'M'], [3, 3, 'M'], [4, 3, 'M'],
+  [5, 3, 'M'], [6, 3, 'M'], [7, 3, 'M'], [8, 3, 'M'], [9, 3, 'D'],
+  // Row 4 — screen top
+  [0, 4, 'L'], [1, 4, 'M'], [2, 4, 'S'], [3, 4, 'S'], [4, 4, 'S'],
+  [5, 4, 'S'], [6, 4, 'S'], [7, 4, 'S'], [8, 4, 'M'], [9, 4, 'D'],
+  // Row 5 — screen eye row (eye dots overlaid separately for blink)
+  [0, 5, 'L'], [1, 5, 'M'], [2, 5, 'S'], [3, 5, 'S'], [4, 5, 'S'],
+  [5, 5, 'S'], [6, 5, 'S'], [7, 5, 'S'], [8, 5, 'M'], [9, 5, 'D'],
+  // Row 6 — screen blank
+  [0, 6, 'L'], [1, 6, 'M'], [2, 6, 'S'], [3, 6, 'S'], [4, 6, 'S'],
+  [5, 6, 'S'], [6, 6, 'S'], [7, 6, 'S'], [8, 6, 'M'], [9, 6, 'D'],
+  // Row 7 — screen smile (4-wide)
+  [0, 7, 'L'], [1, 7, 'M'], [2, 7, 'S'], [3, 7, 'E'], [4, 7, 'E'],
+  [5, 7, 'E'], [6, 7, 'E'], [7, 7, 'S'], [8, 7, 'M'], [9, 7, 'D'],
+  // Row 8 — head bottom shadow band
+  [0, 8, 'D'], [1, 8, 'D'], [2, 8, 'D'], [3, 8, 'D'], [4, 8, 'D'],
+  [5, 8, 'D'], [6, 8, 'D'], [7, 8, 'D'], [8, 8, 'D'], [9, 8, 'D'],
+  // Row 9 — body top
+  [2, 9, 'M'], [3, 9, 'M'], [4, 9, 'M'], [5, 9, 'M'], [6, 9, 'M'], [7, 9, 'M'],
+  // Row 10 — body shaded
+  [2, 10, 'L'], [3, 10, 'M'], [4, 10, 'M'], [5, 10, 'M'], [6, 10, 'M'], [7, 10, 'D'],
+  // Row 11 — feet
+  [1, 11, 'D'], [2, 11, 'D'], [7, 11, 'D'], [8, 11, 'D'],
+]
+
+function PixelAgent({ size = 44 }) {
+  return (
+    <motion.svg
+      viewBox="0 0 100 120"
+      width={size * (100 / 120)}
+      height={size}
+      aria-hidden="true"
+      animate={{ y: [0, -3, 0] }}
+      transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+      style={{ overflow: 'visible', shapeRendering: 'crispEdges' }}
+    >
+      {/* antenna LED tip — pulses */}
+      <motion.rect
+        x={40}
+        y={0}
+        width={10}
+        height={10}
+        fill={METAL.A}
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* body — shaded metal */}
+      {ROBOT_PIXELS.map(([col, row, c]) => (
+        <rect
+          key={`${col}-${row}`}
+          x={col * 10}
+          y={row * 10}
+          width="10"
+          height="10"
+          fill={METAL[c]}
+        />
+      ))}
+
+      {/* eyes — single dots that blink occasionally */}
+      <motion.g
+        fill={METAL.E}
+        animate={{ opacity: [1, 1, 0, 1] }}
+        transition={{
+          duration: 4,
+          times: [0, 0.93, 0.96, 1],
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      >
+        <rect x={30} y={50} width="10" height="10" />
+        <rect x={60} y={50} width="10" height="10" />
+      </motion.g>
+    </motion.svg>
+  )
+}
+
 /* ─── Scroll-reveal wrapper ─────────────────────────────── */
 
 function Reveal({ children, className = '' }) {
@@ -426,6 +555,7 @@ export default function ProjectDetail() {
   const [activeCat, setActiveCat] = useState(
     rich && content.componentCategories ? content.componentCategories[0].id : null
   )
+  const [openRule, setOpenRule] = useState(null)
   const activeCategory = content.componentCategories?.find((c) => c.id === activeCat)
 
   const mono = { fontFamily: "'JetBrains Mono', monospace" }
@@ -477,11 +607,25 @@ export default function ProjectDetail() {
       {/* ── Hero ────────────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-6 mt-6">
         <Reveal>
-          <PreviewBlock
-            color={project.previewColor}
-            type={project.previewType}
-            className="h-[260px] sm:h-[340px] lg:h-[400px] w-full"
-          />
+          {project.heroImage ? (
+            <div
+              className="h-[260px] sm:h-[340px] lg:h-[400px] w-full rounded-2xl overflow-hidden"
+              style={{ backgroundColor: project.previewColor }}
+            >
+              <img
+                src={project.heroImage}
+                alt={project.title}
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
+            </div>
+          ) : (
+            <PreviewBlock
+              color={project.previewColor}
+              type={project.previewType}
+              className="h-[260px] sm:h-[340px] lg:h-[400px] w-full"
+            />
+          )}
         </Reveal>
 
         <Reveal className="mt-8">
@@ -579,23 +723,39 @@ export default function ProjectDetail() {
                   {content.doctrineIntro}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-12">
-                  {content.doctrine.map((rule) => (
-                    <div key={rule.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
-                      {rule.icon && (
-                        <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center mb-4 p-2">
+                  {content.doctrine.map((rule) => {
+                    const hasExample = !!rule.example
+                    const Card = hasExample ? 'button' : 'div'
+                    return (
+                      <Card
+                        key={rule.title}
+                        type={hasExample ? 'button' : undefined}
+                        onClick={hasExample ? () => setOpenRule(rule) : undefined}
+                        className={`text-left border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)] w-full
+                          ${hasExample ? 'cursor-pointer hover:border-[var(--accent)] hover:-translate-y-0.5 transition-all duration-200 group' : ''}`}
+                      >
+                        {rule.icon && (
                           <img
                             src={rule.icon}
                             alt=""
-                            className="max-w-full max-h-full object-contain"
+                            className="w-10 h-10 object-contain mb-4"
                           />
-                        </div>
-                      )}
-                      <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
-                        {rule.title}
-                      </p>
-                      <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
-                    </div>
-                  ))}
+                        )}
+                        <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
+                          {rule.title}
+                        </p>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
+                        {hasExample && (
+                          <div className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--accent)] group-hover:gap-1.5 transition-all">
+                            See it in practice
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                      </Card>
+                    )
+                  })}
                 </div>
               </Reveal>
 
@@ -605,6 +765,15 @@ export default function ProjectDetail() {
                 <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
                   {content.foundationsIntro}
                 </p>
+                {content.tokenComposition && (
+                  <div className="mb-8">
+                    <DSFigure
+                      src={content.tokenComposition.src}
+                      alt={content.tokenComposition.alt}
+                      caption={content.tokenComposition.caption}
+                    />
+                  </div>
+                )}
                 <div className="space-y-6 mb-12">
                   {content.foundations.map((f) => (
                     <div key={f.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
@@ -712,17 +881,6 @@ export default function ProjectDetail() {
                 </p>
               </Reveal>
 
-              {content.systemOverview && (
-                <Reveal>
-                  <DSFigure
-                    src={content.systemOverview.src}
-                    alt={content.systemOverview.alt}
-                    caption={content.systemOverview.caption}
-                    wide={content.systemOverview.wide}
-                  />
-                </Reveal>
-              )}
-
               {/* Tabbed component browser */}
               {content.componentCategories && activeCategory && (
                 <Reveal>
@@ -799,7 +957,13 @@ export default function ProjectDetail() {
               {/* Building alongside agents */}
               {content.agents && (
                 <Reveal>
-                  <SectionLabel>Building alongside agents</SectionLabel>
+                  <div className="flex items-center justify-between gap-6 mb-2">
+                    <div className="flex items-center gap-3">
+                      <SectionLabel>Building alongside agents</SectionLabel>
+                      <PixelAgent size={40} />
+                    </div>
+                    <ClaudeMark size={48} />
+                  </div>
                   <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
                     {content.agentsIntro}
                   </p>
@@ -1044,6 +1208,8 @@ export default function ProjectDetail() {
           </Link>
         </Reveal>
       </div>
+
+      <RulePanel rule={openRule} onClose={() => setOpenRule(null)} />
     </motion.div>
   )
 }

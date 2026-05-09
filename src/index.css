@@ -13,6 +13,11 @@
   --dot-color: rgba(255,255,255,0.25);
   --accent: #2D5BFF;
   --label-accent: #FFD93D;
+  --panel-soft: rgba(255,255,255,0.04);
+  --panel-tab-active: rgba(255,255,255,0.08);
+  --reject-bg: rgba(252,211,77,0.08);
+  --reject-border: #FCD34D;
+  --reject-text: #FCD34D;
 }
 
 [data-theme="light"] {
@@ -27,6 +32,11 @@
   --dot-color: #CCCCCC;
   --accent: #2D5BFF;
   --label-accent: #B8860B;
+  --panel-soft: #F4F5F7;
+  --panel-tab-active: #FFFFFF;
+  --reject-bg: #FEF7E6;
+  --reject-border: #FCD34D;
+  --reject-text: #92400E;
 }
 
 body {
@@ -36,4 +46,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg);
   color: var(--text-primary);
+}
+
+@keyframes panelIn {
+  from { transform: translateX(24px); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+@media (max-width: 768px) {
+  @keyframes panelIn {
+    from { transform: translateY(24px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
 }

@@ -8,15 +8,13 @@
 
 ---
 
-## The fracture
+## Why a system
 
-I was the only designer on the product, and there was no design system. Every new screen got built by copy-pasting from the last one. By the time we'd shipped six core flows, no two buttons had the same padding, no two tables had the same density, no two headings used the same scale.
+People moving real money read consistency as competence. A misaligned number, a button that behaves one way on this screen and another way on the next, a dashboard that scrolls differently on mobile than on desktop — each one is a small reason to wonder if the rest of the product is also held together with tape.
 
-For a SaaS tool, that's a quality issue. For a product where users were tracking portfolios of $250,000 or more, it's a trust issue.
+For a SaaS tool, inconsistency is a quality issue. For a product where users are tracking portfolios of $250,000 or more, it's a trust issue.
 
-People moving real money look for tells. A misaligned number, an inconsistent button, a dashboard that scrolls differently on mobile than on desktop — each one is a small reason to wonder if the rest of the product is also held together with tape. Inconsistency was going to lose us users before features ever did.
-
-So I stopped shipping screens, blocked time, and built the system.
+The product had grown to a point where this needed to be deliberate. So I stopped shipping screens, blocked time, and built the system.
 
 ## Context
 

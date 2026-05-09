@@ -1,25 +1,26 @@
 const projects = [
   {
     id: 'design-system',
-    title: 'Boring is Safe',
+    title: 'When Boring is Safe',
     tags: ['Design System', 'Tokens', 'Wealthtech'],
     previewColor: '#E5EAFC',
     previewType: 'cards',
+    thumbnail: '/case-studies/design-system/thumbnail.webp',
+    heroImage: '/case-studies/design-system/hero.webp',
     role: 'Sole Designer',
     timeline: 'Ongoing',
     platform: 'Web, Tablet, Mobile',
     team: ['Engineering', 'Designer'],
     description:
-      'A design system for Alphanso, a wealthtech platform serving people tracking $250k+ portfolios. One belief: in fintech, boring is safe.',
+      'A design system for Alphanso, a wealthtech platform serving people tracking $250k+ portfolios. Built to deliver the calm and restraint a money product demands.',
     caseStudy: {
       tldr:
-        "Built a design system for users tracking $250k+ portfolios around one belief: in fintech, boring is safe. Restraint, familiar patterns, generous space, clarity over cleverness — across 14 component families, a wealth-management vocabulary, and a 13-chart data viz library. Mockup time dropped from 1–2 days to half a day.",
+        "Built a design system for users tracking $250k+ portfolios — restraint, color with one job, clarity over cleverness — across 14 component families, a wealth-management vocabulary, and a 13-chart data viz library. Mockup time dropped from 1–2 days to half a day.",
       overview:
-        "Six months in, I had eleven different button paddings shipped to production. Twelve, if you counted the one I shipped that morning.",
+        "People moving real money read consistency as competence. A misaligned number, a button that behaves one way on this screen and another way on the next — each one is a small reason to wonder if the rest of the product is held together with tape.",
       challenge: [
-        "I was the only designer on the product, and there was no design system. Every new screen got built by copy-pasting from the last one. By the time we'd shipped six core flows, no two buttons matched, no two tables had the same density, no two headings used the same scale.",
-        "For a SaaS tool, that's a quality issue. For a product where users were tracking portfolios of $250,000 or more, it's a trust issue.",
-        "People moving real money look for tells. A misaligned number, an inconsistent button, a dashboard that scrolls differently on mobile than on desktop — each one is a small reason to wonder if the rest of the product is held together with tape. Inconsistency was going to lose us users before features ever did. So I stopped shipping screens, blocked time, and built the system.",
+        "For a SaaS tool, inconsistency is a quality issue. For a product where users are tracking portfolios of $250,000 or more, it's a trust issue.",
+        "The product had grown to a point where this needed to be deliberate. So I stopped shipping screens, blocked time, and built the system.",
       ],
       competitorIntro:
         "In fintech, what's familiar feels safe. If a transfer flow doesn't work like the user's bank, they get nervous before they trust it. So instead of inventing, I studied — five competitors covering planning, investing, and full-service wealth management.",
@@ -31,31 +32,71 @@ const projects = [
         { competitor: 'Titan', learning: 'Niche, tech-focused audience', logo: 'https://logo.clearbit.com/titan.com' },
       ],
       doctrineIntro:
-        "I committed to one belief: boring is safe. People moving real money want familiar, calm, and clear. They don't want to be impressed by gradients. They want to find their numbers and trust them. That belief turned into four rules — every component decision had to follow at least one.",
+        "The product made the call: boring is safe. People moving real money want familiar, calm, and clear — they don't want to be impressed by gradients, they want to find their numbers and trust them. My job was to commit to that and go deep, not to argue it. That requirement turned into three rules — every component decision had to follow at least one.",
       doctrine: [
         {
           title: 'Quiet, not loud',
           body:
             'Every visual choice should mean something. No decoration, no gradients, no shadows that pop. Color is reserved for signal.',
-          icon: '/case-studies/design-system/rules/quiet.png',
+          icon: '/case-studies/design-system/rules/quiet.svg',
+          example: {
+            headline: "The section that isn't there yet",
+            body: [
+              "When a user uploads a tax document, parsing takes about eight seconds. The convention is to show an empty section below the file with a skeleton placeholder — it tells the user where data will appear.",
+              "We didn't. The section doesn't exist until parsing finds something, then it eases in.",
+              "On a money product, empty sections don't read as 'loading.' They read as 'the system failed.' For unparseable files — PNGs and the like — the section doesn't appear at all.",
+            ],
+            media: {
+              type: 'video',
+              src: '/case-studies/design-system/panels/document-parsing.mov',
+            },
+            caption: 'Document upload, parse-to-section reveal.',
+            rejected: 'Always-render the section with a skeleton state.',
+          },
         },
         {
-          title: 'Familiar, not new',
+          title: 'Color, one job each',
           body:
-            "Use what people already know. If the rest of the category does something a particular way, do it that way too — unless there's a real reason not to.",
-          icon: '/case-studies/design-system/rules/familiar.png',
-        },
-        {
-          title: 'Roomy, not cramped',
-          body:
-            'Whitespace is breathing room. Breathing room is trust. Generous padding around money matters.',
-          icon: '/case-studies/design-system/rules/roomy.png',
+            'Each color in the system is assigned a single job and never reused. Asset classes have fixed colors used wherever they appear; red is reserved for moments that carry weight.',
+          icon: '/case-studies/design-system/rules/color.svg',
+          example: {
+            headline: 'Red carries weight',
+            body: [
+              "Red doesn't decorate or label numbers. It shows up only when the user needs to pay attention — a spending pattern they should see, an action they can't undo.",
+              "Used everywhere, red becomes noise. Kept rare, it stays a signal — when it appears, the user knows it means something, and never has to ask why.",
+            ],
+            media: {
+              type: 'image-grid',
+              srcs: [
+                '/case-studies/design-system/panels/red-spending.png',
+                '/case-studies/design-system/panels/red-option-tray.png',
+              ],
+            },
+            caption: 'A spending warning. A destructive action.',
+          },
         },
         {
           title: 'Clear, not clever',
           body:
             'Never make the user wonder if something happened. Tabular figures, explicit labels, inline validation, modal confirmations for big actions.',
-          icon: '/case-studies/design-system/rules/clear.png',
+          icon: '/case-studies/design-system/rules/clear.svg',
+          example: {
+            headline: 'Fields in the order the document put them',
+            body: [
+              "When a user uploads a 1099, we parse it into a structured table. The clever move was to sort the rows — by amount, by category, by relevance.",
+              "We didn't. Fields appear in the exact box order the form printed them — 1099-INT shows Box 1, 1099-DIV runs 1a → 1b → 2a → 4, 1099-MISC runs 2 → 3 → 4. Open the source PDF next to the parsed view: line 1 matches line 1.",
+              "Sorting would make the system feel intelligent. Keeping the order matches what the user has in their hand.",
+            ],
+            media: {
+              type: 'tabbed',
+              tabs: [
+                { label: 'Parsed', src: '/case-studies/design-system/panels/1099-div.png' },
+                { label: 'Source', src: '/case-studies/design-system/panels/1099-div-source.png' },
+              ],
+            },
+            caption: '1099-DIV — toggle to compare parsed view and source PDF.',
+            rejected: 'Re-sorting parsed rows by amount, category, or relevance.',
+          },
         },
       ],
       foundationsIntro: 'The token system stays small on purpose.',
@@ -139,8 +180,13 @@ const projects = [
           ],
         },
       ],
+      tokenComposition: {
+        src: '/case-studies/design-system/tokens-applied.webp',
+        alt: 'Portfolio overview with token annotations — type, color, spacing, data viz, surface, border',
+        caption: 'A real screen, with the tokens that compose it. Every element traces back to a named value.',
+      },
       systemIntro:
-        'The system covers fourteen component families, all built around the four rules.',
+        'Fourteen component families, every one built against the three rules — here\'s the catalog.',
       systemOverview: {
         src: '/case-studies/design-system/system-overview.png',
         alt: 'Alphanso design system overview — full canvas',
@@ -221,10 +267,11 @@ const projects = [
         {
           id: 'labels',
           label: 'Labels',
-          description: 'The wealthtech vocabulary. The most uniquely wealthtech part of the system.',
-          body:
-            'Generic design systems give you buttons and chips. Wealth management needs vocabulary. Labels is organized by domain — Investment service (Balance, Preserve, Income, Wealth), Goal planning (Retirement, Home, Education, Emergency, Health, Car, Wedding, Vacation), Financial wellness, Tax support, Estate planning, plus sync states. Each label has its own icon and category color. No off-the-shelf DS has this layer because no off-the-shelf product needs it — and shipping new flows became as simple as picking from the vocabulary.',
-          items: [],
+          description:
+            'The wealthtech vocabulary. Generic design systems give you buttons and chips — wealth management needs vocabulary. Each label has its own icon and category color, organized by domain (Investment service, Goal planning, Financial wellness, Tax support, Estate planning, sync states). No off-the-shelf DS has this layer because no off-the-shelf product needs it.',
+          items: [
+            { name: 'Labels', body: 'Domain-organized chips: investment buckets, goal types, tax services, estate items, sync states.', src: '/case-studies/design-system/labels.png', wide: true },
+          ],
         },
       ],
       agentsIntro:
@@ -237,34 +284,34 @@ const projects = [
         { name: 'grid-resize', body: 'Applies the responsive grid across breakpoints. Encodes the full spec — five breakpoints, column counts, panel splits, widget sizing.' },
       ],
       agentsClose:
-        "The DS isn't just a Figma file anymore. It's a system that audits, drafts, and migrates itself. I'm still the designer making the calls — the agents handle the parts that used to eat my afternoon.",
+        "The trick wasn't the agents themselves. It was writing structured component descriptions once so they could read the file the way I do. I still make the design calls; the agents handle what used to eat my afternoon.",
       stats: [
         { value: '1–2d → ½d', label: 'Mockup time' },
         { value: '14', label: 'Component families' },
-        { value: '~100', label: 'Type styles' },
+        { value: '13', label: 'Chart variants' },
       ],
       results:
-        'The most concrete outcome was speed. Screen mockups that used to take 1–2 days started landing in half a day. Design review turned from "is this consistent with what we shipped before?" into "is this the right pattern for this problem?" — a much better conversation. Scope-wise, the system covers fourteen component families, around 100 documented type styles, thirteen-plus chart variants, an atomic table system, and a wealth-management vocabulary that no off-the-shelf system would have given me.',
+        'The most concrete outcome was speed. Screen mockups that used to take 1–2 days started landing in half a day. Design review turned from "is this consistent with what we shipped before?" into "is this the right pattern for this problem?" — a much better conversation. Scope-wise, the system covers fourteen component families, thirteen-plus chart variants, an atomic table system, and a wealth-management vocabulary that no off-the-shelf system would have given me.',
       reflectionIntro: "Building alone is fast, but it's lossy.",
       reflection: [
         {
           title: 'Decisions never get pressure-tested',
           body:
-            "The labels vocabulary, for instance — I decided it. Nobody asked 'are these the right five investment buckets?' or 'why is health insurance separate from estate?' The system reflects me, not us. That's a debt that compounds with every component.",
+            "The labels vocabulary, for instance — I decided it. Nobody pushed back. The system reflects me, not us, and that debt compounds with every component.",
         },
         {
           title: 'Convention is trust, but it can become same-ness',
           body:
-            'Five competitors taught me what to keep familiar. None of them taught me where to risk being different. Some places in the system — chart resize behavior, the labels vocabulary — probably should be more opinionated than they are.',
+            'Five competitors taught me what to keep familiar. None of them taught me where to risk being different.',
         },
         {
-          title: 'Agents make solo less lonely, but not less subjective',
+          title: 'Agents make solo less lonely, not less subjective',
           body:
-            "ads-linter can flag a token violation. It can't tell me when 'familiar' has become 'derivative.' That call is still mine.",
+            "ads-linter can flag a token violation. It can't tell me when 'familiar' has become 'derivative.'",
         },
       ],
       reflectionClose:
-        "What designing under boring is safe taught me: in regulated, high-stakes domains, restraint is a feature, not a constraint. The harder lesson was that working alone shapes what you make. The next version of this system needs more than another set of tokens — it needs another point of view.",
+        "What I learned: in regulated, high-stakes domains, restraint is a feature, not a constraint. The harder lesson was that working alone shapes what you make. The next version of this system needs more than another set of tokens — it needs another point of view.",
       deliverables: ['Design System', 'Token Architecture', 'Component Library', 'Agent Layer'],
     },
   },

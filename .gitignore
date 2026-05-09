@@ -24,3 +24,13 @@ portfolio-backup-*
 *.sln
 *.sw?
 .vercel
+
+# Local working folders — source assets, not shipped
+Working file (important)/
+Portfolio (Assets)/
+
+# Case study prototypes — local sketches, not shipped
+case-studies/panel-*-preview.html
+case-studies/rule-icons-preview.html
+case-studies/parsed-tax-table-reference.html
+case-studies/preview-assets/

@@ -82,6 +82,7 @@ export default function ProjectCard({
   tags,
   previewColor,
   previewType,
+  thumbnail,
 }) {
   const navigate = useNavigate()
 
@@ -92,12 +93,23 @@ export default function ProjectCard({
         hover:shadow-lg hover:shadow-black/20 hover:-translate-y-1 transition-all duration-200 group"
     >
       {/* Preview */}
-      <div
-        className="h-[200px] rounded-xl m-2"
-        style={{ backgroundColor: previewColor }}
-      >
-        <PreviewContent type={previewType} color={previewColor} />
-      </div>
+      {thumbnail ? (
+        <div className="h-[200px] rounded-xl m-2 overflow-hidden">
+          <img
+            src={thumbnail}
+            alt={title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      ) : (
+        <div
+          className="h-[200px] rounded-xl m-2"
+          style={{ backgroundColor: previewColor }}
+        >
+          <PreviewContent type={previewType} color={previewColor} />
+        </div>
+      )}
 
       {/* Info */}
       <div className="px-4 pb-4 pt-2">
