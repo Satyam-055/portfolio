@@ -25,12 +25,8 @@ portfolio-backup-*
 *.sw?
 .vercel
 
-# Local working folders — source assets, not shipped
-Working file (important)/
-Portfolio (Assets)/
+# Local workspace — design source assets, not shipped
+_workspace/
 
-# Case study prototypes — local sketches, not shipped
-case-studies/panel-*-preview.html
-case-studies/rule-icons-preview.html
-case-studies/parsed-tax-table-reference.html
-case-studies/preview-assets/
+# Case study archive — superseded sketches and drafts, not shipped
+case-studies/_archive/
