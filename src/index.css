@@ -10,7 +10,7 @@
   --text-primary: #F3F4F6;
   --text-secondary: #A3A3A3;
   --text-muted: #737373;
-  --dot-color: rgba(255,255,255,0.25);
+  --dot-color: rgba(255,255,255,0.14);
   --accent: #2D5BFF;
   --label-accent: #FFD93D;
   --panel-soft: rgba(255,255,255,0.04);
@@ -29,7 +29,7 @@
   --text-primary: #1A1A1A;
   --text-secondary: #6D6D6D;
   --text-muted: #999999;
-  --dot-color: #CCCCCC;
+  --dot-color: rgba(0,0,0,0.14);
   --accent: #2D5BFF;
   --label-accent: #B8860B;
   --panel-soft: #F4F5F7;

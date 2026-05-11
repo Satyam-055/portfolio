@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
@@ -152,6 +152,374 @@ function MiniPreview({ color, type, className = '' }) {
 }
 
 /* ─── DS Figure (case study images) ─────────────────────── */
+
+function TabbedFigure({ tabs, ratio = '16 / 9' }) {
+  const [active, setActive] = useState(0)
+  const current = tabs[active]
+  const proportional = tabs.some((t) => t.widthPx)
+  const maxPx = proportional ? Math.max(...tabs.map((t) => t.widthPx || 0)) : null
+  const { containerRef, imgRef, reset, recapture } = useZoom()
+  useEffect(() => {
+    // React re-rendered the img with the new tab's style; resnapshot before reset restores it.
+    recapture()
+    reset()
+  }, [active, recapture, reset])
+  return (
+    <div className="my-6">
+      <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px] mb-3.5">
+        {tabs.map((t, i) => {
+          const isActive = i === active
+          return (
+            <button
+              key={t.label}
+              type="button"
+              onClick={() => setActive(i)}
+              className={`px-3.5 py-1.5 rounded-[5px] text-[12px] font-medium transition-colors
+                ${isActive
+                  ? 'bg-[var(--panel-tab-active)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                  : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+            >
+              {t.label}
+            </button>
+          )
+        })}
+      </div>
+      {current.image ? (
+        <figure
+          ref={containerRef}
+          className="bg-[var(--panel-soft)] border border-[var(--border)] rounded-xl
+                     flex items-center justify-center overflow-hidden px-6 py-10 select-none"
+          style={{ height: '480px' }}
+        >
+          <img
+            ref={imgRef}
+            src={current.image}
+            alt={current.alt || current.label}
+            loading="lazy"
+            draggable={false}
+            className="block rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]"
+            style={{
+              width: 'auto',
+              height: 'auto',
+              maxWidth: proportional ? `${(current.widthPx / maxPx) * 100}%` : '100%',
+              maxHeight: '100%',
+              willChange: 'transform',
+            }}
+          />
+        </figure>
+      ) : (
+        <div
+          className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--bg-card)]
+                     flex items-center justify-center px-6 py-8 text-center"
+          style={{ aspectRatio: ratio }}
+        >
+          <div className="max-w-[480px]">
+            <p
+              className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)] mb-2"
+              style={{ fontFamily: "'Work Sans', sans-serif" }}
+            >
+              insert img — {current.label}
+            </p>
+            <p className="text-[13px] text-[var(--text-secondary)] leading-[1.55]">
+              {current.imagePlaceholder}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ImgPlaceholder({ description, caption, ratio = '16 / 9' }) {
+  return (
+    <figure className="my-6">
+      <div
+        className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--bg-card)]
+                   flex items-center justify-center px-6 py-8 text-center"
+        style={{ aspectRatio: ratio }}
+      >
+        <div className="max-w-[480px]">
+          <p
+            className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)] mb-2"
+            style={{ fontFamily: "'Work Sans', sans-serif" }}
+          >
+            insert img
+          </p>
+          <p className="text-[13px] text-[var(--text-secondary)] leading-[1.55]">
+            {description}
+          </p>
+        </div>
+      </div>
+      {caption && (
+        <figcaption
+          className="text-[12px] italic text-[var(--text-muted)] mt-2"
+          style={{ fontFamily: "'Work Sans', sans-serif" }}
+        >
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+function useZoom() {
+  const containerRef = useRef(null)
+  const imgRef = useRef(null)
+  const stateRef = useRef({ scale: 1, x: 0, y: 0, baseW: 0, baseH: 0 })
+  const draggingRef = useRef(false)
+  const originalStyleRef = useRef(null)
+
+  const recapture = useCallback(() => {
+    const img = imgRef.current
+    if (!img) return
+    if (stateRef.current.scale > 1.001) return
+    originalStyleRef.current = img.getAttribute('style') || ''
+  }, [])
+
+  const apply = useCallback(() => {
+    const img = imgRef.current
+    if (!img) return
+    const { scale, x, y, baseW, baseH } = stateRef.current
+    const zoomed = scale > 1.001 && baseW && baseH
+    if (zoomed) {
+      img.style.maxWidth = 'none'
+      img.style.maxHeight = 'none'
+      img.style.width = `${baseW * scale}px`
+      img.style.height = `${baseH * scale}px`
+      img.style.transform = `translate(${x}px, ${y}px)`
+    } else if (originalStyleRef.current !== null) {
+      img.setAttribute('style', originalStyleRef.current)
+    } else {
+      img.style.width = ''
+      img.style.height = ''
+      img.style.maxWidth = ''
+      img.style.maxHeight = ''
+      img.style.transform = ''
+    }
+    const el = containerRef.current
+    if (el) el.style.overflow = zoomed ? 'hidden' : ''
+  }, [])
+
+  const captureBase = useCallback(() => {
+    const img = imgRef.current
+    if (!img || !img.offsetWidth) return
+    if (stateRef.current.scale > 1.001) return
+    if (originalStyleRef.current === null) {
+      originalStyleRef.current = img.getAttribute('style') || ''
+    }
+    stateRef.current = {
+      ...stateRef.current,
+      baseW: img.offsetWidth,
+      baseH: img.offsetHeight,
+    }
+  }, [])
+
+  const updateCursor = useCallback(() => {
+    const el = containerRef.current
+    if (!el) return
+    if (draggingRef.current) el.style.cursor = 'grabbing'
+    else if (stateRef.current.scale > 1.001) el.style.cursor = 'grab'
+    else el.style.cursor = ''
+  }, [])
+
+  const reset = useCallback(() => {
+    stateRef.current = { ...stateRef.current, scale: 1, x: 0, y: 0 }
+    const img = imgRef.current
+    if (img) {
+      img.style.transition = 'width 220ms cubic-bezier(0.2, 0.8, 0.2, 1), height 220ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)'
+      apply()
+      setTimeout(() => {
+        if (img) img.style.transition = ''
+      }, 240)
+    }
+    updateCursor()
+  }, [apply, updateCursor])
+
+  useEffect(() => {
+    const img = imgRef.current
+    if (!img) return
+    const onLoad = () => captureBase()
+    if (img.complete) captureBase()
+    img.addEventListener('load', onLoad)
+    const onResize = () => captureBase()
+    window.addEventListener('resize', onResize)
+    return () => {
+      img.removeEventListener('load', onLoad)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [captureBase])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    let dragStart = null
+
+    const onWheel = (e) => {
+      const isZoom = e.ctrlKey || e.metaKey
+      const t = stateRef.current
+
+      if (isZoom) {
+        e.preventDefault()
+        if (!t.baseW) {
+          captureBase()
+          if (!stateRef.current.baseW) return
+        }
+        const next = Math.max(1, Math.min(5, t.scale - e.deltaY * 0.005))
+        if (next <= 1.001) {
+          stateRef.current = { ...stateRef.current, scale: 1, x: 0, y: 0 }
+        } else {
+          // Scale around image center; user can pan after to find detail
+          const ratio = next / t.scale
+          stateRef.current = {
+            ...stateRef.current,
+            scale: next,
+            x: t.x * ratio,
+            y: t.y * ratio,
+          }
+        }
+        apply()
+        updateCursor()
+        return
+      }
+
+      // Two-finger drag / wheel pan when zoomed
+      if (t.scale > 1.001) {
+        e.preventDefault()
+        stateRef.current = { ...t, x: t.x - e.deltaX, y: t.y - e.deltaY }
+        apply()
+      }
+    }
+
+    const onDown = (e) => {
+      if (stateRef.current.scale <= 1.001) return
+      if (e.button !== 0) return
+      e.preventDefault()
+      draggingRef.current = true
+      dragStart = {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        startX: stateRef.current.x,
+        startY: stateRef.current.y,
+      }
+      updateCursor()
+    }
+
+    const onMove = (e) => {
+      if (!draggingRef.current || !dragStart) return
+      const dx = e.clientX - dragStart.clientX
+      const dy = e.clientY - dragStart.clientY
+      stateRef.current = {
+        ...stateRef.current,
+        x: dragStart.startX + dx,
+        y: dragStart.startY + dy,
+      }
+      apply()
+    }
+
+    const onUp = () => {
+      if (!draggingRef.current) return
+      draggingRef.current = false
+      dragStart = null
+      updateCursor()
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    el.addEventListener('mousedown', onDown)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('mousedown', onDown)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [apply, updateCursor, captureBase])
+
+  return { containerRef, imgRef, reset, recapture }
+}
+
+function ZoomableFigure({ src, alt, caption, height = 480 }) {
+  const { containerRef, imgRef } = useZoom()
+  return (
+    <figure className="my-6">
+      <div
+        ref={containerRef}
+        className="bg-[var(--panel-soft)] border border-[var(--border)] rounded-xl
+                   flex items-center justify-center overflow-hidden px-6 py-10 select-none"
+        style={{ height: `${height}px` }}
+      >
+        <img
+          ref={imgRef}
+          src={src}
+          alt={alt}
+          loading="lazy"
+          draggable={false}
+          className="block rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]"
+          style={{
+            width: 'auto',
+            height: 'auto',
+            maxWidth: '100%',
+            maxHeight: '100%',
+            willChange: 'transform',
+          }}
+        />
+      </div>
+      {caption && (
+        <figcaption
+          className="text-[12px] italic text-[var(--text-muted)] mt-2"
+          style={{ fontFamily: "'Work Sans', sans-serif" }}
+        >
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+function ScrollablePreview({ src, alt, caption, height = 480 }) {
+  const chromeH = 28
+  const { containerRef, imgRef } = useZoom()
+  return (
+    <figure className="my-6">
+      <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]">
+        <div
+          className="flex items-center gap-1.5 px-3 border-b border-[var(--border)] bg-[var(--panel-soft)]"
+          style={{ height: `${chromeH}px` }}
+        >
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#FF5F57' }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#FEBC2E' }} />
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#28C840' }} />
+        </div>
+        <div
+          ref={containerRef}
+          className="overflow-y-auto select-none"
+          style={{ height: `${height - chromeH}px`, touchAction: 'pan-y' }}
+        >
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            loading="lazy"
+            draggable={false}
+            className="block w-full h-auto"
+            style={{ willChange: 'transform' }}
+          />
+        </div>
+      </div>
+      {caption && (
+        <figcaption
+          className="text-[12px] italic text-[var(--text-muted)] mt-2"
+          style={{ fontFamily: "'Work Sans', sans-serif" }}
+        >
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
 
 function DSFigure({ src, alt, caption, wide = false }) {
   if (wide) {
@@ -669,7 +1037,7 @@ export default function ProjectDetail() {
 
               {/* Overview / The fracture opening */}
               <Reveal>
-                <SectionLabel>The fracture</SectionLabel>
+                <SectionLabel>{content.sectionLabels?.fracture || 'The fracture'}</SectionLabel>
                 <p className="text-[var(--text-secondary)] text-[16px] leading-[1.75] mb-6">
                   {content.overview}
                 </p>
@@ -682,86 +1050,214 @@ export default function ProjectDetail() {
                 </div>
               </Reveal>
 
-              {/* Research — competitor matrix */}
-              <Reveal>
-                <SectionLabel>Research</SectionLabel>
-                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
-                  {content.competitorIntro}
-                </p>
-                <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden mb-12">
-                  {content.competitorMatrix.map((row, i) => (
-                    <div
-                      key={row.competitor}
-                      className={`flex flex-col sm:flex-row sm:items-center px-5 py-4 gap-3 sm:gap-6 ${
-                        i !== content.competitorMatrix.length - 1 ? 'border-b border-[#E6E6E6]' : ''
-                      }`}
-                    >
-                      <div className="sm:w-[200px] shrink-0 flex items-center gap-3">
-                        {row.logo && (
-                          <img
-                            src={row.logo}
-                            alt={`${row.competitor} logo`}
-                            loading="lazy"
-                            className="w-8 h-8 rounded-md object-contain bg-white"
-                            onError={(e) => { e.currentTarget.style.display = 'none' }}
-                          />
-                        )}
-                        <p className="text-[14px] font-semibold text-[#1A1A1A]" style={heading}>
-                          {row.competitor}
-                        </p>
+              {/* Research — competitor matrix (only if defined) */}
+              {content.competitorMatrix && (
+                <Reveal>
+                  <SectionLabel>{content.sectionLabels?.research || 'Research'}</SectionLabel>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                    {content.competitorIntro}
+                  </p>
+                  <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden mb-12">
+                    {content.competitorMatrix.map((row, i) => (
+                      <div
+                        key={row.competitor}
+                        className={`flex flex-col sm:flex-row sm:items-center px-5 py-4 gap-3 sm:gap-6 ${
+                          i !== content.competitorMatrix.length - 1 ? 'border-b border-[#E6E6E6]' : ''
+                        }`}
+                      >
+                        <div className="sm:w-[200px] shrink-0 flex items-center gap-3">
+                          {row.logo && (
+                            <img
+                              src={row.logo}
+                              alt={`${row.competitor} logo`}
+                              loading="lazy"
+                              className="w-8 h-8 rounded-md object-contain bg-white"
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            />
+                          )}
+                          <p className="text-[14px] font-semibold text-[#1A1A1A]" style={heading}>
+                            {row.competitor}
+                          </p>
+                        </div>
+                        <p className="text-[14px] text-[#6D6D6D] leading-[1.6]">{row.learning}</p>
                       </div>
-                      <p className="text-[14px] text-[#6D6D6D] leading-[1.6]">{row.learning}</p>
-                    </div>
-                  ))}
-                </div>
-              </Reveal>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Pain points — only if defined */}
+              {content.painPoints && (
+                <Reveal>
+                  <div className="space-y-3 mb-12">
+                    {content.painPoints.map((pt) => (
+                      <div key={pt.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            pt.severity === 'Critical'
+                              ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400'
+                              : 'bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400'
+                          }`}>
+                            {pt.severity}
+                          </span>
+                          <p className="text-[14px] font-semibold text-[var(--text-primary)]" style={heading}>{pt.title}</p>
+                        </div>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7] mb-3">{pt.body}</p>
+                        <div className="flex items-start gap-2 pt-3 border-t border-[var(--border-subtle)]">
+                          <span className="text-[var(--accent)] mt-0.5 shrink-0">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v20M2 12h20" strokeLinecap="round"/></svg>
+                          </span>
+                          <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6]">{pt.opportunity}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Journey — image-led narrative section (only if defined) */}
+              {content.journey && (
+                <Reveal>
+                  <SectionLabel>{content.sectionLabels?.journey || 'The journey'}</SectionLabel>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                    {content.journey.intro}
+                  </p>
+                  {content.journey.image ? (
+                    <ZoomableFigure
+                      src={content.journey.image}
+                      alt={content.journey.alt}
+                      caption={content.journey.caption}
+                    />
+                  ) : (
+                    <ImgPlaceholder
+                      description={content.journey.placeholder}
+                      caption={content.journey.caption}
+                      ratio="21 / 9"
+                    />
+                  )}
+                </Reveal>
+              )}
 
               {/* The stance — doctrine */}
               <Reveal>
-                <SectionLabel>The stance</SectionLabel>
+                <SectionLabel>{content.sectionLabels?.stance || 'The stance'}</SectionLabel>
                 <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
                   {content.doctrineIntro}
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-12">
-                  {content.doctrine.map((rule) => {
-                    const hasExample = !!rule.example
-                    const Card = hasExample ? 'button' : 'div'
-                    return (
-                      <Card
-                        key={rule.title}
-                        type={hasExample ? 'button' : undefined}
-                        onClick={hasExample ? () => setOpenRule(rule) : undefined}
-                        className={`text-left border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)] w-full
-                          ${hasExample ? 'cursor-pointer hover:border-[var(--accent)] hover:-translate-y-0.5 transition-all duration-200 group' : ''}`}
-                      >
-                        {rule.icon && (
-                          <img
-                            src={rule.icon}
-                            alt=""
-                            className="w-10 h-10 object-contain mb-4"
-                          />
-                        )}
-                        <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
-                          {rule.title}
-                        </p>
-                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
-                        {hasExample && (
-                          <div className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--accent)] group-hover:gap-1.5 transition-all">
-                            See it in practice
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                              <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </div>
-                        )}
-                      </Card>
-                    )
-                  })}
-                </div>
+                {(() => {
+                  const hasMedia = content.doctrine.some((r) => r.imagePlaceholder || r.image || r.tabs)
+                  const gridClass = hasMedia
+                    ? 'space-y-4 mb-12'
+                    : 'grid grid-cols-1 sm:grid-cols-2 gap-3 mb-12'
+                  return (
+                    <div className={gridClass}>
+                      {content.doctrine.map((rule) => {
+                        const hasExample = !!rule.example
+                        const hasInlineInteraction = !!rule.tabs || !!rule.scrollable
+                        const cardIsButton = hasExample && !hasInlineInteraction
+                        const Card = cardIsButton ? 'button' : 'div'
+                        const cardProps = cardIsButton
+                          ? {
+                              type: 'button',
+                              onClick: () => setOpenRule(rule),
+                              className:
+                                'relative text-left border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)] w-full cursor-pointer hover:border-[var(--accent)] hover:-translate-y-0.5 transition-all duration-200 group',
+                            }
+                          : {
+                              className:
+                                'relative text-left border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)] w-full',
+                            }
+                        return (
+                          <Card key={rule.title} {...cardProps}>
+                            {hasExample && (
+                              cardIsButton ? (
+                                <span className="absolute top-5 right-5 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--accent)] group-hover:gap-1.5 transition-all pointer-events-none">
+                                  See it in practice
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenRule(rule)}
+                                  className="absolute top-5 right-5 inline-flex items-center gap-1 text-[12px] font-medium text-[var(--accent)] hover:gap-1.5 transition-all cursor-pointer"
+                                >
+                                  See it in practice
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </button>
+                              )
+                            )}
+                            {rule.icon && (
+                              <img
+                                src={rule.icon}
+                                alt=""
+                                className="w-10 h-10 object-contain mb-4"
+                              />
+                            )}
+                            <p
+                              className="text-[15px] font-semibold text-[var(--text-primary)] mb-2"
+                              style={{ ...heading, paddingRight: hasExample ? '160px' : 0 }}
+                            >
+                              {rule.title}
+                            </p>
+                            <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
+                            {rule.tabs ? (
+                              <TabbedFigure tabs={rule.tabs} ratio="16 / 9" />
+                            ) : rule.scrollable && rule.image ? (
+                              <ScrollablePreview src={rule.image} alt={rule.alt || rule.title} caption={rule.caption} />
+                            ) : rule.image ? (
+                              <DSFigure src={rule.image} alt={rule.alt || rule.title} caption={rule.caption} />
+                            ) : rule.imagePlaceholder ? (
+                              <ImgPlaceholder description={rule.imagePlaceholder} ratio="16 / 9" />
+                            ) : null}
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </Reveal>
+
+              {/* Scope showcase — only if defined */}
+              {content.scopeShowcase && (
+                <Reveal>
+                  <SectionLabel>{content.sectionLabels?.showcase || 'The scope'}</SectionLabel>
+                  {content.scopeShowcaseIntro && (
+                    <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                      {content.scopeShowcaseIntro}
+                    </p>
+                  )}
+                  <div className="space-y-4 mb-12">
+                    {content.scopeShowcase.map((item) => (
+                      <div
+                        key={item.title}
+                        className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]"
+                      >
+                        <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>
+                          {item.title}
+                        </p>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{item.body}</p>
+                        {item.sizes && (
+                          <TabbedFigure tabs={item.sizes} ratio="16 / 9" />
+                        )}
+                        {!item.sizes && item.imagePlaceholder && (
+                          <ImgPlaceholder description={item.imagePlaceholder} ratio="21 / 9" />
+                        )}
+                        {!item.sizes && item.image && (
+                          <DSFigure src={item.image} alt={item.alt} caption={item.caption} wide />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
 
               {/* Foundations */}
               <Reveal>
-                <SectionLabel>Foundations</SectionLabel>
+                <SectionLabel>{content.sectionLabels?.foundations || 'Foundations'}</SectionLabel>
                 <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
                   {content.foundationsIntro}
                 </p>
@@ -771,6 +1267,19 @@ export default function ProjectDetail() {
                       src={content.tokenComposition.src}
                       alt={content.tokenComposition.alt}
                       caption={content.tokenComposition.caption}
+                    />
+                  </div>
+                )}
+                {content.widgetSizes && (
+                  <div className="mb-8">
+                    <TabbedFigure tabs={content.widgetSizes} ratio="16 / 9" />
+                  </div>
+                )}
+                {content.foundationsImagePlaceholder && (
+                  <div className="mb-8">
+                    <ImgPlaceholder
+                      description={content.foundationsImagePlaceholder}
+                      ratio="21 / 9"
                     />
                   </div>
                 )}
@@ -874,12 +1383,14 @@ export default function ProjectDetail() {
               </Reveal>
 
               {/* The system */}
-              <Reveal>
-                <SectionLabel>The system</SectionLabel>
-                <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
-                  {content.systemIntro}
-                </p>
-              </Reveal>
+              {content.systemIntro && (
+                <Reveal>
+                  <SectionLabel>The system</SectionLabel>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                    {content.systemIntro}
+                  </p>
+                </Reveal>
+              )}
 
               {/* Tabbed component browser */}
               {content.componentCategories && activeCategory && (

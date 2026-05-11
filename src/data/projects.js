@@ -316,18 +316,392 @@ const projects = [
     },
   },
   {
-    id: 'income-allocation',
-    title: 'Income & Allocation',
-    tags: ['Dashboard', 'Data Viz', 'Drag & Drop'],
-    previewColor: '#CEF8E0',
-    previewType: 'bars',
-    role: 'Lead Designer',
-    timeline: '12 Weeks',
-    platform: 'Web',
-    team: ['Dev', 'Marketing', 'Designer'],
+    id: 'strategic-review',
+    title: 'Advisor as content',
+    tags: ['Product Design', 'State Machine', 'Responsive'],
+    previewColor: '#FFE8DC',
+    previewType: 'cards',
+    thumbnail: '/case-studies/strategic-review/thumbnail.png',
+    heroImage: '/case-studies/strategic-review/hero.webp',
+    role: 'Product Designer',
+    timeline: '6 Weeks',
+    platform: 'Web, Tablet, Mobile',
+    team: ['Advisory', 'Engineering', 'Designer'],
     description:
-      'Redesigned the income allocation interface for a wealth management platform, enabling users to split deposits across savings, investments, and spending accounts with intuitive drag-based controls and real-time previews.',
+      'A widget that brings personalized advisor reviews into the Alphanso dashboard — request, wait, read the report — without leaving the surface where the rest of your money lives.',
+    caseStudy: {
+      sectionLabels: {
+        fracture: 'The gap',
+        stance: 'The decisions',
+        foundations: 'The widget',
+      },
+      tldr:
+        "A dashboard widget that surfaces advisor-driven financial reviews as content. Six analysis types, each with custom data visualizations, redesigned across the breakpoints they ship in — all using the same dashboard grammar as charts, accounts, and statements. No separate inbox, no scheduling, no PDF emails.",
+      overview:
+        "Wealthtech products usually pick a side. Self-serve dashboards where you draw your own conclusions, or full advisory where a human tells you what to do. Alphanso bet on hybrid — and that meant designing a way for advisor work to live alongside everything else, not in a parallel space.",
+      challenge: [
+        "The default playbook for adding human advisory to a digital product is a meeting-booking app: schedule a call, show up, get a PDF, never think about it again. Calendar friction up front, attachment-tab friction at the end.",
+        "Strategic Reviews bet on something different: the advisor never appears as a person you book. They appear as the source of a report that lands in your dashboard, with the same grammar — chart card, status badge, tap to open — as everything else you already use.",
+      ],
+      journey: {
+        intro:
+          'Six steps from a user wanting an analysis to reading the report. Each step traded a default friction point for a quieter one.',
+        image: '/case-studies/strategic-review/journey-flow.webp',
+        wide: true,
+        alt: 'Six-step user journey diagram',
+        caption: 'The journey, captured during research. Each blue square is a step; each yellow sticky was an open question.',
+      },
+      doctrineIntro:
+        'Two decisions shaped what shipped. Both came from the same constraint: the dashboard\'s grammar had to absorb advisor work without changing for it.',
+      doctrine: [
+        {
+          title: 'Modal, not in-widget',
+          body:
+            'The detail view opens in a modal on desktop and a bottom sheet on mobile. The card stays where it was. Two surfaces, two jobs.',
+          tabs: [
+            {
+              label: 'Desktop',
+              widthPx: 960,
+              image: '/case-studies/strategic-review/analysis-modal.webp',
+              alt: 'Strategic Reviews modal on desktop — left rail listing the six analysis types, Investment Portfolio selected with description, time estimate, and required inputs.',
+            },
+            {
+              label: 'Mobile',
+              widthPx: 375,
+              image: '/case-studies/strategic-review/modal-mobile.webp',
+              alt: 'Strategic Reviews bottom sheet on mobile — same content, vertical layout, drag handle at the bottom.',
+            },
+          ],
+          example: {
+            headline: 'How img, card, and modal come together',
+            intro:
+              'Three layers carry the work. Each one has a single job, and each one degrades gracefully when the size shrinks.',
+            sections: [
+              {
+                heading: 'SVGs, crafted per strategy',
+                body:
+                  'Each review type gets its own illustration. Investment uses an ascending chart over a green grid; Advanced Tax Strategy uses stacked, layered receipts. The motif maps to the strategy so the user can tell types apart at a glance, before reading the headline.',
+                media: {
+                  type: 'image-grid',
+                  srcs: [
+                    '/case-studies/strategic-review/svg-investment.webp',
+                    '/case-studies/strategic-review/svg-tax.webp',
+                  ],
+                },
+                caption: 'Investment Portfolio (left) and Advanced Tax Strategy (right). Same canvas size, different language.',
+              },
+              {
+                heading: 'Cards: status badge, plus a hint of why',
+                body:
+                  'Every card carries a status badge — "1–2 days · In review" with an hourglass while pending, a green check when ready. Secondary text under the headline names the analysis subject ("Bank of America (*4932)" for Account, "Maximize Retirement Savings" for Tax). It tells the user this review was kicked off for them, not a generic template.',
+                media: {
+                  type: 'image-grid',
+                  srcs: [
+                    '/case-studies/strategic-review/card-account.webp',
+                    '/case-studies/strategic-review/card-tax-strategy.webp',
+                  ],
+                },
+                caption: 'Two cards waiting on review. The hourglass and "1–2 days" anchor the eye before the strategy name.',
+              },
+            ],
+            rejected:
+              'Expanding the full report inside the card would have meant fitting six analyses, each with their own breakdown, into a 380-pixel container.',
+          },
+        },
+        {
+          title: 'Information density adapts; meaning doesn\'t',
+          body:
+            'Strategic Reviews surfaces six analyses, each a custom data visualization. Every one had to render at multiple sizes without losing the user. The rule: information density adapts to size, but the chart\'s meaning never does. A funnel stays a funnel; a comparison stays a comparison. Values move into overlays before they get cut.',
+          image: '/case-studies/strategic-review/modal-detail.webp',
+          scrollable: true,
+          alt: 'Investment Portfolio review opened — donuts for current vs recommended allocation, bar chart of weights, sector breakdown, holdings table, fixed income table, portfolio characteristics. Scroll to see the entire breakdown.',
+        },
+      ],
+      scopeShowcaseIntro:
+        'The work that doesn\'t fit on a single page. Two of the six analyses — Tier Analysis and Income vs Allocation — shown across the sizes they ship in. Different charts react to breakpoints differently, which is why the size counts aren\'t identical.',
+      scopeShowcase: [
+        {
+          title: 'Tier Analysis',
+          body:
+            'A funnel that buckets the portfolio across emergency / short-term / mid-term / retirement, with advisor recommendations overlaid. At Large, every tier shows its dollar value and breakdown inline. At Compact, the chart shrinks but the meaning holds. Tap any tier and the Expanded view opens — the same chart re-shaped as a focused breakdown.',
+          sizes: [
+            { label: 'Large', widthPx: 720, image: '/case-studies/strategic-review/tier-large.webp', alt: 'Tier Analysis at Large — full funnel with all four tiers, dollar values and recommendations inline.' },
+            { label: 'Expanded', widthPx: 720, image: '/case-studies/strategic-review/tier-expanded.webp', alt: 'Tier Analysis with Tier 1 inline-expanded — sub-bars for Household, Mortgage, and Other daily needs.' },
+            { label: 'Compact', widthPx: 380, image: '/case-studies/strategic-review/tier-compact.webp', alt: 'Tier 1 modal at Compact — when there\'s no room to expand inline, a modal pops up with the breakdown.' },
+          ],
+        },
+        {
+          title: 'Income vs Allocation',
+          body:
+            'Two donut charts comparing Current to Recommended allocation, with delta bars below. Different charts, same density rule. At Large, both donuts sit side by side. Below the Large breakpoint they collapse into a single donut with a Current / Recommended tab toggle — same comparison, less screen.',
+          sizes: [
+            { label: 'Large', widthPx: 720, image: '/case-studies/strategic-review/income-large.webp', alt: 'Income vs Allocation at Large — Current and Recommended donuts side by side with delta bars.' },
+            { label: 'Compact', widthPx: 380, image: '/case-studies/strategic-review/income-compact.webp', alt: 'Income vs Allocation at Compact — single donut with Current / Recommended tab toggle.' },
+          ],
+        },
+      ],
+      foundationsIntro:
+        'The widget shell that holds the analyses adapts across three primary breakpoints. Same content, three layouts.',
+      foundations: [
+        {
+          title: 'Three breakpoints',
+          body:
+            'Large (≥528px) and Medium (420–527px) keep the full pill CTA "Request a review" and a horizontal-split empty state. Compact (≤419px) collapses the CTA to an icon-only + button and stacks the empty state vertically.',
+          sizeChips: ['Large 631px', 'Medium 527px', 'Compact 379px'],
+        },
+        {
+          title: 'Card carousel',
+          body:
+            'Review cards stay 260px wide across all breakpoints — what changes is how many are visible (≈2.2 / 1.8 / 1.2). Same gap, same card height, same status badge grammar. Horizontal scroll with three-dot pagination.',
+        },
+        {
+          title: 'Empty state, marketed',
+          body:
+            'The empty state isn\'t a placeholder — it\'s the user\'s first contact with the feature. "Your advisor, on demand" explains what the widget does and ends with the same Request CTA, so empty and populated states feel like the same widget at different points in time.',
+        },
+        {
+          title: 'Status grammar',
+          body:
+            'In review (yellow badge + ETA "1–2 days") and View report (green badge, no ETA). Cards in the same carousel can be in different states simultaneously, so users always see what\'s pending and what\'s ready in the same scan.',
+        },
+      ],
+      widgetSizes: [
+        { label: 'Large 631px', widthPx: 631, image: '/case-studies/strategic-review/widget-large.webp', alt: 'Widget at Large — full "Request a review" pill, multiple review cards visible in the carousel.' },
+        { label: 'Medium 527px', widthPx: 527, image: '/case-studies/strategic-review/widget-medium.webp', alt: 'Widget at Medium — pill CTA persists, one review card visible.' },
+        { label: 'Compact 379px', widthPx: 379, image: '/case-studies/strategic-review/widget-compact.webp', alt: 'Widget at Compact — CTA stays full pill, vertical-stack empty state with the on-demand pitch.' },
+      ],
+      stats: [
+        { value: '6', label: 'Analysis types' },
+        { value: '2–3', label: 'Sizes per analysis' },
+        { value: '~30', label: 'Chart layouts shipped' },
+      ],
+      results:
+        'The widget shipped as the entry point to a feature that, in the wealthtech category, is usually a calendar-and-PDF flow. By keeping advisor output inside the dashboard\'s existing grammar — chart cards, status badges, tap-to-open — users never have to context-switch between "I\'m using my product" and "I\'m talking to my advisor." The wait time didn\'t change. The wait experience did.',
+      reflectionIntro:
+        "Hybrid models look obvious in retrospect. They aren\'t.",
+      reflection: [
+        {
+          title: 'The dashboard\'s grammar paid for itself',
+          body:
+            'The chart cards, the status badges, the modal pattern — most of these weren\'t new. Strategic Reviews is mostly existing components in a new arrangement. That repetition is why six different visualizations don\'t feel like six different products.',
+        },
+        {
+          title: 'Six charts, many sizes — the system held',
+          body:
+            'Each analysis got its own custom chart, but every one was constrained by the same density rule and the same widget shell. The constraints became the case for shipping six analyses instead of three.',
+        },
+        {
+          title: 'Some calls still feel under-tested',
+          body:
+            'The modal-vs-in-widget decision was the right one for cramped screens. On a 1440px desktop, it\'s less obvious that the modal earned its keep — that\'s a measurement we still owe ourselves.',
+        },
+      ],
+      reflectionClose:
+        "The bet was that you could ship advisory inside a dashboard without becoming a meeting-booking app. The proof is in the seams: where would a user notice they\'ve crossed from \"self-serve product\" into \"advisor space\"? After six analyses, dozens of layouts, and one modal, the answer is mostly nowhere.",
+      deliverables: ['Product Design', 'Interaction Design', 'Responsive System', 'Component Spec'],
+    },
   },
+  {
+    id: 'manual-account',
+    title: 'Upload. Done.',
+    tags: ['Product Design', 'Fintech', 'System Design'],
+    previewColor: '#E6F0E8',
+    previewType: 'cards',
+    thumbnail: '/case-studies/manual-account/thumbnail.png',
+    heroImage: '/case-studies/manual-account/hero.png',
+    role: 'Product Designer',
+    timeline: '5 Weeks',
+    platform: 'Web, Mobile',
+    team: ['Engineering', 'Designer'],
+    description:
+      "Designing manual account creation that doesn't feel manual — a PDF upload flow that extracts real holdings, history, and balances without a form in sight.",
+    caseStudy: {
+      sectionLabels: {
+        fracture: 'The problem',
+        research: 'Research',
+        stance: 'The decisions',
+        showcase: 'The flow',
+        foundations: 'After the account exists',
+      },
+
+      tldr:
+        'Most financial apps treat manual account creation as a punishment for when automatic connection fails. We made it a first-class path — upload a bank statement, get a fully populated account with holdings, history, and balance. No form. No column mapping. Two entry points, one flow, and a clear upgrade path to automatic sync.',
+
+      overview:
+        'Most financial apps connect to your bank automatically — you log in once and your accounts, balances, and transactions appear. But that automatic connection fails more often than you\'d think. And even when it works, some users aren\'t ready to hand over their bank credentials to a third-party app on day one.',
+
+      challenge: [
+        'When the automatic connection fails, most apps hit a wall. The fallback is a form. Enter your account name. Enter your balance. Done. Except it\'s not done — now you have a number floating in a dashboard with no history, no holdings, no context. A ghost account.',
+        'We wanted to do better than that.',
+      ],
+
+      competitorIntro:
+        'We audited six competitors: Kubera, Portfolio Performance, Sharesight, Betterment, Monarch Money, and Empower. The pattern was consistent — manual account creation was either hidden, bolted on after failure, or stripped of the features that auto-connected accounts get.',
+
+      competitorMatrix: [
+        { competitor: 'Kubera', learning: 'Only app with stale data nudges. AI extraction but no visual badge distinguishing manual vs synced.' },
+        { competitor: 'Portfolio Performance', learning: '90+ bank-specific parsers. 3-step wizard preview. Desktop-only.' },
+        { competitor: 'Sharesight', learning: 'Best preview step — inline row editing. CSV-only, no PDF.' },
+        { competitor: 'Betterment', learning: 'Yellow warning banner after failure. "Connect Manually Instead" — most explicit fallback, but framed as failure.' },
+        { competitor: 'Monarch Money', learning: 'Tiered fallback after connection fails. Good discovery, too many steps.' },
+        { competitor: 'Empower', learning: 'Anti-pattern: users must type "MANUAL" as a search keyword to find manual creation. Hidden by design.' },
+      ],
+
+      painPoints: [
+        {
+          severity: 'Critical',
+          title: 'Manual is undiscoverable',
+          body: 'Most platforms hide the option until something breaks. Empower requires knowing a secret keyword. Users who need it most can\'t find it.',
+          opportunity: 'Surface upload prominently at the failure point and as an intentional path in Add Account — a confident alternative, not a hidden fallback.',
+        },
+        {
+          severity: 'Critical',
+          title: 'Data goes stale silently',
+          body: 'Manual accounts go stale with no warning. Net worth dashboards become inaccurate over time. Only Kubera sends proactive reminders — everyone else ignores the problem.',
+          opportunity: 'A stale data nudge on the account card with a direct route to upload a newer statement.',
+        },
+        {
+          severity: 'High',
+          title: 'Manual accounts are second-class',
+          body: 'Fewer features across every competitor: no transaction tracking, no performance analysis, no historical data. Users who can\'t auto-connect get a degraded product.',
+          opportunity: 'Document Lens extracts holdings, transactions, and balances from the statement — same data richness as a connected account.',
+        },
+      ],
+
+      doctrineIntro:
+        'Two entry points, one flow. Users arrive either from a failed automatic connection or intentionally through Add Account. Each carries different emotional context — frustration vs intent. The flow underneath is identical.',
+
+      doctrine: [
+        {
+          title: 'Non-blocking by default',
+          body:
+            'Parsing a statement takes time. The modal minimizes into a persistent bottom-right toast — Importing → Verifying → Ready — while the user keeps navigating. No waiting. No staring at a spinner.',
+          imagePlaceholder: 'Four toast states side by side: Importing (spinner), Verifying (spinner + blue dot on tab), Account ready (green check + View CTA), 1 import failed (amber bar + Upload CTA)',
+          example: {
+            headline: 'The pipeline behind the 98%',
+            body: [
+              'When a PDF is uploaded, it passes through three stages before an account is created.',
+              'First, Redact strips personally identifiable information so raw document data never hits the main API. Then LLaMA parses the document structure — identifying account type, institution, holdings, balances, and transaction rows. Finally, GPT classifies and normalises the output into Alphanso\'s account schema.',
+              'The result is 98% parse accuracy on institutional PDFs. That accuracy is why extracted values aren\'t editable — showing a correction UI would undermine the confidence signal the whole flow is built on.',
+            ],
+            pipelineSteps: ['PDF in', 'Redact PII', 'LLaMA parses', 'GPT classifies', 'Account out'],
+          },
+        },
+        {
+          title: 'What we killed',
+          body:
+            'Three directions were explored and cut. Each was a deliberate decision, not a resource constraint.',
+          example: {
+            headline: 'Three directions that didn\'t make it',
+            sections: [
+              {
+                heading: 'Draft state',
+                body: 'We explored saving partial uploads so users could resume later. Built it out, then cut it — the flow takes under a minute to restart. A dedicated tab for edge-case recovery adds noise at exactly the moment when a new user\'s trust is most fragile.',
+              },
+              {
+                heading: 'Live-update widget',
+                body: 'A widget showing in-progress parsing implies uncertainty. On day one, you don\'t want the interface telegraphing "we\'re not sure yet." Confidence is the design.',
+              },
+              {
+                heading: 'Password-protected PDF support',
+                body: 'The moodboard included it. Cut during research — US financial institutions don\'t password protect statements. The assumption was a cultural import from Indian banking norms, not a real US user need.',
+              },
+            ],
+          },
+        },
+      ],
+
+      scopeShowcaseIntro:
+        'Upload a PDF statement from your bank or brokerage. The modal minimizes. Parsing runs in the background. A persistent toast tracks the state. No form, no column mapping, no reformatting.',
+
+      scopeShowcase: [
+        {
+          title: 'Upload',
+          body: 'User selects a PDF. The modal shows the filename with an importing spinner and copy that lets them know they can walk away: "We\'re extracting your account details and transactions. Feel free to continue."',
+          imagePlaceholder: 'Web: upload state — modal with Fidelity_Statement_Mar.pdf, importing spinner, feel-free-to-continue copy',
+        },
+        {
+          title: 'Verifying',
+          body: 'Document is parsed in the background. The modal minimizes to a bottom-right toast. A blue dot on the account tab in the header signals something is in progress without interrupting the current page.',
+          imagePlaceholder: 'Web: minimized "Account import" toast — filename + Verifying.. status, blue dot on account tab in header',
+        },
+        {
+          title: 'Ready',
+          body: 'Account created. Toast resolves green: the extracted account name and masked number appear ("Chase Checking ****3245"), with a View CTA. The new account tab is already waiting in the page header.',
+          imagePlaceholder: 'Web: Account import toast — green checkmark, Chase Checking ****3245, View CTA. New account tab visible in header.',
+        },
+        {
+          title: 'Error',
+          body: 'If parsing fails, a single amber bar: "1 import failed — Upload." No stack trace, no technical copy. One action, one path forward.',
+          imagePlaceholder: 'Web: error state — amber bottom bar "1 import failed" + Upload button',
+        },
+        {
+          title: 'Mobile',
+          body: 'On mobile the entry point lives on the connection failure screen itself — a "Create manual account" CTA with trust copy below it. The import runs as a dismissible bottom sheet. Success and error resolve as snackbars.',
+          imagePlaceholder: 'Mobile: 4 states side by side — entry (connection failure + Create manual account CTA), importing sheet, success snackbar (1 account ready), error snackbar (1 import failed)',
+        },
+      ],
+
+      foundationsIntro:
+        'Most competitors stop at account created. We didn\'t.',
+
+      foundations: [
+        {
+          title: 'Manual badge',
+          body: 'Every manually created account carries a dashed border — honest, not shameful. Synced accounts use a solid border. At a glance you know which data is live and which came from a document. Tap the badge and you\'re back in the upload flow to enrich the account with a newer statement.',
+          imagePlaceholder: 'Account card: dashed-border Manual badge (left) vs solid-border Synced badge (right)',
+        },
+        {
+          title: 'Document history',
+          body: 'Every PDF that has ever contributed to the account is listed on the account detail page. Full audit trail, always visible to the user.',
+          imagePlaceholder: 'Account detail page — associated documents section listing Fidelity_Brokerage_2026.pdf, Chase_Checking.pdf, Amex_CreditCard_Statement_Feb.pdf',
+        },
+        {
+          title: 'Enrichment over time',
+          body: 'Upload a newer statement from the badge on the account detail page — the account updates in place. Same flow as creation, reused for enrichment. The feature doesn\'t end at first upload.',
+          imagePlaceholder: 'Account detail — Manual badge tapped, upload new statement prompt open',
+        },
+        {
+          title: 'Stale data nudge',
+          body: '"Upload a new statement to refresh your view — or connect your brokerage for automatic updates." The upgrade path to automatic sync is always one tap away. Manual is a starting point, not a dead end.',
+          imagePlaceholder: 'Stale nudge state on account card — upload prompt + connect brokerage link',
+        },
+      ],
+
+      stats: [
+        { value: '2', label: 'Entry points' },
+        { value: '98%', label: 'Parse accuracy' },
+        { value: '3', label: 'Directions killed' },
+      ],
+
+      results:
+        'The flow ships as the fallback path for users whose automatic connection failed — and as an intentional first step for users who aren\'t ready to connect yet. By treating the PDF as a data-rich source rather than a workaround, manual accounts get the same holdings, history, and balance data as connected ones. The badge, the document list, and the stale nudge close the loop: manual isn\'t lesser, it\'s a starting point.',
+
+      reflectionIntro:
+        'Three things worth keeping from this project.',
+
+      reflection: [
+        {
+          title: 'Research killed two features before they shipped',
+          body: 'Password-protected PDF support was designed before we checked whether US banks actually use passwords. They don\'t. Research is cheaper than building the wrong thing.',
+        },
+        {
+          title: 'Confidence is a design decision',
+          body: 'Skipping the correction UI was the highest-stakes call. A 98% accuracy rate earns the right to show output as fact, not a draft. Showing editable fields would have told users to distrust the system before they\'d tried it.',
+        },
+        {
+          title: 'The upgrade path matters as much as the flow',
+          body: 'Designing manual creation without designing the route out of it would have left users stranded. The stale nudge and the badge aren\'t polish — they\'re the argument that manual accounts are first-class.',
+        },
+      ],
+
+      reflectionClose:
+        'The bet was that uploading a PDF could create an account as rich as one that\'s been connected for months. The parse pipeline makes that true. The design\'s job was to not get in the way of that — and to make sure users knew where to go next.',
+
+      deliverables: ['Product Design', 'Interaction Design', 'System Design', 'Mobile'],
+    },
+  },
+
   {
     id: 'policy-review',
     title: 'Policy Review',

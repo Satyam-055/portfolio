@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
+import ParsePipeline from './ParsePipeline'
 
 export default function RulePanel({ rule, onClose }) {
-  const [activeTab, setActiveTab] = useState(0)
   const example = rule?.example
 
   useEffect(() => {
     if (!rule) return
-    setActiveTab(0)
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
@@ -71,23 +70,57 @@ export default function RulePanel({ rule, onClose }) {
           {example.headline}
         </h2>
 
-        {/* Body intro (first paragraph) */}
-        {example.body?.[0] && (
-          <p className="text-[15px] leading-[1.65] mb-[18px] text-[var(--text-primary)]">{example.body[0]}</p>
+        {example.sections ? (
+          <>
+            {example.intro && (
+              <p className="text-[15px] leading-[1.65] mb-6 text-[var(--text-primary)]">{example.intro}</p>
+            )}
+            {example.sections.map((section, i) => (
+              <section key={i} className="mb-7">
+                {section.heading && (
+                  <h3 className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[var(--text-secondary)] mb-3"
+                      style={{ fontFamily: '"Work Sans", "Inter", sans-serif' }}>
+                    {section.heading}
+                  </h3>
+                )}
+                {section.body && (
+                  <p className="text-[15px] leading-[1.65] mb-3.5 text-[var(--text-primary)]">{section.body}</p>
+                )}
+                {section.media && <Media media={section.media} />}
+                {section.caption && (
+                  <div className="text-[12px] italic text-[var(--text-secondary)] mt-2.5">{section.caption}</div>
+                )}
+              </section>
+            ))}
+          </>
+        ) : (
+          <>
+            {/* Body intro (first paragraph) */}
+            {example.body?.[0] && (
+              <p className="text-[15px] leading-[1.65] mb-[18px] text-[var(--text-primary)]">{example.body[0]}</p>
+            )}
+
+            {/* Media */}
+            <Media media={example.media} />
+
+            {/* Caption */}
+            {example.caption && (
+              <div className="text-[12px] italic text-[var(--text-secondary)] mt-2.5 mb-6">{example.caption}</div>
+            )}
+
+            {/* Body remainder */}
+            {example.body?.slice(1).map((p, i) => (
+              <p key={i} className="text-[15px] leading-[1.65] mb-[18px] text-[var(--text-primary)]">{p}</p>
+            ))}
+          </>
         )}
 
-        {/* Media */}
-        <Media media={example.media} activeTab={activeTab} setActiveTab={setActiveTab} />
-
-        {/* Caption */}
-        {example.caption && (
-          <div className="text-[12px] italic text-[var(--text-secondary)] mt-2.5 mb-6">{example.caption}</div>
+        {/* Pipeline visualiser */}
+        {example.pipelineSteps && (
+          <div className="mt-6 mb-2">
+            <ParsePipeline />
+          </div>
         )}
-
-        {/* Body remainder */}
-        {example.body?.slice(1).map((p, i) => (
-          <p key={i} className="text-[15px] leading-[1.65] mb-[18px] text-[var(--text-primary)]">{p}</p>
-        ))}
 
         {/* Rejected callout */}
         {example.rejected && (
@@ -103,7 +136,8 @@ export default function RulePanel({ rule, onClose }) {
   )
 }
 
-function Media({ media, activeTab, setActiveTab }) {
+function Media({ media }) {
+  const [activeTab, setActiveTab] = useState(0)
   if (!media) return null
 
   if (media.type === 'video') {
@@ -116,6 +150,21 @@ function Media({ media, activeTab, setActiveTab }) {
           loop
           playsInline
           className="max-w-full max-h-full rounded-md"
+        />
+      </div>
+    )
+  }
+
+  if (media.type === 'image') {
+    return (
+      <div className="bg-[var(--panel-soft)] border border-[var(--border)] rounded-[10px] p-4
+                      flex items-center justify-center overflow-hidden"
+           style={{ minHeight: '240px', maxHeight: '460px' }}>
+        <img
+          src={media.src}
+          alt={media.alt || ''}
+          className="max-w-full max-h-full block rounded-md
+                     shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]"
         />
       </div>
     )
