@@ -507,8 +507,8 @@ const projects = [
     tags: ['Product Design', 'Fintech', 'System Design'],
     previewColor: '#E6F0E8',
     previewType: 'cards',
-    thumbnail: '/case-studies/manual-account/thumbnail.png',
-    heroImage: '/case-studies/manual-account/hero.png',
+    thumbnail: '/case-studies/manual-account/thumbnail.webp',
+    heroImage: '/case-studies/manual-account/Modal-1.webp',
     role: 'Product Designer',
     timeline: '5 Weeks',
     platform: 'Web, Mobile',
@@ -616,29 +616,46 @@ const projects = [
 
       scopeShowcase: [
         {
+          title: 'Entry point A',
+          body: 'From Add Account, the account type selector always ends with "Having trouble? Create manually." The path is visible before anything goes wrong — it\'s an intentional choice, not a last resort.',
+          image: '/case-studies/manual-account/Modal.webp',
+          alt: 'Select account type modal — Brokerages, Bank & credit cards, Liabilities, with Create manually link at bottom',
+        },
+        {
+          title: 'Entry point B',
+          body: 'When automatic connection fails, the error screen doesn\'t dead-end. It pivots: "You can still add this account by uploading a recent statement." Trust copy and a single CTA — no hunting for a workaround.',
+          image: '/case-studies/manual-account/Modal-1.webp',
+          alt: 'Couldn\'t connect to Fidelity modal — Create manual account CTA with statement upload illustration',
+        },
+        {
           title: 'Upload',
           body: 'User selects a PDF. The modal shows the filename with an importing spinner and copy that lets them know they can walk away: "We\'re extracting your account details and transactions. Feel free to continue."',
-          imagePlaceholder: 'Web: upload state — modal with Fidelity_Statement_Mar.pdf, importing spinner, feel-free-to-continue copy',
+          image: '/case-studies/manual-account/Modal-2.webp',
+          alt: 'Upload statement modal — file drop zone with step-by-step explainer',
         },
         {
           title: 'Verifying',
           body: 'Document is parsed in the background. The modal minimizes to a bottom-right toast. A blue dot on the account tab in the header signals something is in progress without interrupting the current page.',
-          imagePlaceholder: 'Web: minimized "Account import" toast — filename + Verifying.. status, blue dot on account tab in header',
+          image: '/case-studies/manual-account/Modal-3.webp',
+          alt: 'Upload statement modal — verifying state with filename, spinner, and Minimize button',
         },
         {
           title: 'Ready',
-          body: 'Account created. Toast resolves green: the extracted account name and masked number appear ("Chase Checking ****3245"), with a View CTA. The new account tab is already waiting in the page header.',
-          imagePlaceholder: 'Web: Account import toast — green checkmark, Chase Checking ****3245, View CTA. New account tab visible in header.',
+          body: 'Parsing complete. The extracted institution, account number, holdings, type, and date appear — no form to fill. One button: Create account.',
+          image: '/case-studies/manual-account/Modal-4.webp',
+          alt: 'Upload statement modal — parsed account data shown, Create account button active',
         },
         {
           title: 'Error',
-          body: 'If parsing fails, a single amber bar: "1 import failed — Upload." No stack trace, no technical copy. One action, one path forward.',
-          imagePlaceholder: 'Web: error state — amber bottom bar "1 import failed" + Upload button',
+          body: 'If the file isn\'t a valid statement, a clear inline message explains why and offers one action: upload a different file. No dead ends.',
+          image: '/case-studies/manual-account/Error.webp',
+          alt: 'Upload statement modal — error state: This doesn\'t look like an account statement',
         },
         {
           title: 'Mobile',
-          body: 'On mobile the entry point lives on the connection failure screen itself — a "Create manual account" CTA with trust copy below it. The import runs as a dismissible bottom sheet. Success and error resolve as snackbars.',
-          imagePlaceholder: 'Mobile: 4 states side by side — entry (connection failure + Create manual account CTA), importing sheet, success snackbar (1 account ready), error snackbar (1 import failed)',
+          body: 'On mobile the entry point lives on the connection failure screen itself — a "Create manual account" CTA with trust copy below it. The import runs as a dismissible bottom sheet.',
+          image: '/case-studies/manual-account/Bottom-sheet.webp',
+          alt: 'Mobile: Select account type bottom sheet with Create manually option',
         },
       ],
 
@@ -654,7 +671,7 @@ const projects = [
         {
           title: 'Document history',
           body: 'Every PDF that has ever contributed to the account is listed on the account detail page. Full audit trail, always visible to the user.',
-          imagePlaceholder: 'Account detail page — associated documents section listing Fidelity_Brokerage_2026.pdf, Chase_Checking.pdf, Amex_CreditCard_Statement_Feb.pdf',
+          image: { src: '/case-studies/manual-account/Source expanded.webp', alt: 'Account detail page showing associated documents list and spending chart' },
         },
         {
           title: 'Enrichment over time',
