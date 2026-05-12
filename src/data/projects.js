@@ -586,7 +586,8 @@ const projects = [
           title: 'Non-blocking by default',
           body:
             'Parsing a statement takes time. The modal minimizes into a persistent bottom-right toast — Importing → Verifying → Ready — while the user keeps navigating. No waiting. No staring at a spinner.',
-          imagePlaceholder: 'Four toast states side by side: Importing (spinner), Verifying (spinner + blue dot on tab), Account ready (green check + View CTA), 1 import failed (amber bar + Upload CTA)',
+          image: '/case-studies/manual-account/Modal-3.webp',
+          alt: 'Upload statement verifying state — modal shows filename parsing in background, Minimize button visible',
           example: {
             headline: 'The pipeline behind the 98%',
             body: [
@@ -662,12 +663,6 @@ const projects = [
           body: 'If the file isn\'t a valid statement, a clear inline message explains why and offers one action: upload a different file. No dead ends.',
           image: '/case-studies/manual-account/Error.webp',
           alt: 'Upload statement modal — error state: This doesn\'t look like an account statement',
-        },
-        {
-          title: 'Mobile',
-          body: 'On mobile the entry point lives on the connection failure screen itself — a "Create manual account" CTA with trust copy below it. The import runs as a dismissible bottom sheet.',
-          image: '/case-studies/manual-account/Bottom-sheet.webp',
-          alt: 'Mobile: Select account type bottom sheet with Create manually option',
         },
       ],
 

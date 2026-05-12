@@ -575,8 +575,9 @@ function DSFigure({ src, alt, caption, wide = false }) {
 }
 
 /* ─── Scoped Tabs (mobile / desktop variants) ──────────── */
-function ScopeTabs({ tabs }) {
+function ScopeTabs({ tabs, height = 460 }) {
   const [active, setActive] = useState(0)
+  const current = tabs[active]
   return (
     <div className="mt-4">
       <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px] mb-3">
@@ -594,7 +595,7 @@ function ScopeTabs({ tabs }) {
           </button>
         ))}
       </div>
-      <DSFigure src={tabs[active].src} alt={tabs[active].label} caption={tabs[active].caption} wide />
+      <ZoomableFigure src={current.src} alt={current.label} caption={current.caption} height={height} />
     </div>
   )
 }
