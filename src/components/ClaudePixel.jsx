@@ -8,6 +8,58 @@ import { useRef, useEffect, useState, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 
+// Lazy AudioContext — created on first call (must be from a user-gesture stack
+// like dragend, which is how the cinematic kicks off).
+let audioCtx = null
+function playPunchSound() {
+  if (typeof window === 'undefined') return
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext
+    if (!AC) return
+    if (!audioCtx) audioCtx = new AC()
+    if (audioCtx.state === 'suspended') audioCtx.resume()
+    const ctx = audioCtx
+    const t0 = ctx.currentTime
+
+    // Whoosh: filtered white-noise sweep down
+    const noiseDur = 0.18
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * noiseDur), ctx.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.85
+    const noise = ctx.createBufferSource()
+    noise.buffer = buf
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'bandpass'
+    filter.Q.value = 0.9
+    filter.frequency.setValueAtTime(7000, t0)
+    filter.frequency.exponentialRampToValueAtTime(420, t0 + noiseDur)
+    const noiseGain = ctx.createGain()
+    noiseGain.gain.setValueAtTime(0.0001, t0)
+    noiseGain.gain.exponentialRampToValueAtTime(0.55, t0 + 0.025)
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + noiseDur)
+    noise.connect(filter).connect(noiseGain).connect(ctx.destination)
+    noise.start(t0)
+    noise.stop(t0 + noiseDur + 0.02)
+
+    // Thunk: low sine pulse landing right after the whoosh peaks
+    const thunkStart = t0 + 0.07
+    const thunkDur = 0.22
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(220, thunkStart)
+    osc.frequency.exponentialRampToValueAtTime(55, thunkStart + thunkDur)
+    const oscGain = ctx.createGain()
+    oscGain.gain.setValueAtTime(0.0001, thunkStart)
+    oscGain.gain.exponentialRampToValueAtTime(0.5, thunkStart + 0.015)
+    oscGain.gain.exponentialRampToValueAtTime(0.0001, thunkStart + thunkDur)
+    osc.connect(oscGain).connect(ctx.destination)
+    osc.start(thunkStart)
+    osc.stop(thunkStart + thunkDur + 0.02)
+  } catch (_) {
+    // Audio unavailable — fail silently
+  }
+}
+
 export default function ClaudePixel({ size = 6, detective = false }) {
   const canvasRef = useRef(null)
   const slotRef = useRef(null)        // empty div in flow at the navbar — holds layout space
@@ -30,6 +82,19 @@ export default function ClaudePixel({ size = 6, detective = false }) {
   const wasDraggedRef = useRef(false)
   const parachuteActiveRef = useRef(false)
   parachuteActiveRef.current = mode === 'deploy' || mode === 'descent' || mode === 'land'
+
+  // ── Cinematic camera (transforms the document, not the cat) ─────
+  const cameraActiveRef = useRef(false)
+  const cameraRafRef = useRef(null)
+  const speedLinesRef = useRef(null)
+  const backdropRef = useRef(null)
+  const angryPoseRef = useRef(false) // true during the camera-hold "beat"
+  const deflationRef = useRef(0)     // 0..1, ramps up in last 22% of descent
+  // Scroll compensation: body transform repositions fixed descendants relative
+  // to body's top-left (= viewport - scrollY). We capture scroll at cinematic
+  // start and add it to motion.div translate so the cat stays at its viewport
+  // slot position regardless of how far down the user scrolled.
+  const [cinematicShiftY, setCinematicShiftY] = useState(0)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -309,10 +374,11 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     // ─── Parachute (drawn in canvas pixel-space) ────────
     // Canopy is a stepped dome from row 4 (peak) down to row 12 (skirt).
     // openT = 0..1, the deploy progress (controls how wide the canopy is).
-    function drawParachute(openT, swayPx) {
+    function drawParachute(openT, swayPx, skipRightStrings = false, canopyScale = 1) {
       const sx = swayPx | 0
-      // Ramp the canopy width with openT for a "pop open" feel.
-      const t = Math.min(1, Math.max(0, openT))
+      // Ramp the canopy width with openT for a "pop open" feel; canopyScale
+      // shrinks the canopy on landing as it loses lift.
+      const t = Math.min(1, Math.max(0, openT)) * canopyScale
       const rows = [
         [4,  36, 40, P.chuteHi],
         [5,  33, 43, P.chute],
@@ -340,15 +406,18 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         }
         px(38 + sx, 4, P.chuteWhite); px(38 + sx, 5, P.chuteWhite)
       }
-      // Strings — only attach once the canopy is mostly open
-      if (t > 0.5) {
+      // Strings — extend down to just above the cat's new head position.
+      if (openT > 0.5) {
         const ends = [
-          [22, 13, 33, 27],
-          [31, 13, 35, 27],
-          [45, 13, 41, 27],
-          [54, 13, 43, 27],
+          [22, 13, 33, 33],
+          [31, 13, 35, 33],
+          [45, 13, 41, 33],
+          [54, 13, 43, 33],
         ]
-        for (const [x1, y1, x2, y2] of ends) {
+        for (let i2 = 0; i2 < ends.length; i2++) {
+          // Right two strings = ends[2] and ends[3]; skip them when arm is up.
+          if (skipRightStrings && i2 >= 2) continue
+          const [x1, y1, x2, y2] = ends[i2]
           const steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))
           for (let i = 0; i <= steps; i++) {
             const k = i / steps
@@ -373,6 +442,72 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       px(x + 4, y + 8, P.bodyDk); px(x + 4, y + 9, P.bodyDk2)
       px(x + 7, y + 8, P.bodyDk); px(x + 7, y + 9, P.bodyDk2)
       px(x + 10, y + 8, P.bodyDk); px(x + 11, y + 9, P.bodyDk2)
+    }
+
+    // Angry cat with middle finger raised — anime cut-in pose
+    function drawAngryCat() {
+      const x = CX - 5
+      const y = CY - 9
+      // Tail flicked up (angry)
+      px(x + 11, y + 5, P.tail)
+      px(x + 12, y + 4, P.tail)
+      px(x + 13, y + 3, P.tail)
+      px(x + 13, y + 2, P.tailDk)
+      // Head + ears
+      px(x + 2, y, P.body); px(x + 7, y, P.body)
+      rect(x + 2, y + 1, 7, 1, P.body)
+      rect(x + 1, y + 2, 9, 1, P.body)
+      // Angry V-shape brows above eyes
+      px(x + 2, y + 1, '#1a1a1a'); px(x + 3, y + 2, '#1a1a1a')
+      px(x + 7, y + 2, '#1a1a1a'); px(x + 8, y + 1, '#1a1a1a')
+      // Narrowed slit eyes (just horizontal slits)
+      rect(x + 3, y + 2, 1, 1, P.eye)
+      rect(x + 6, y + 2, 1, 1, P.eye)
+      // Cheeks + nose row
+      rect(x + 1, y + 3, 9, 1, P.body)
+      px(x + 4, y + 3, P.nose); px(x + 5, y + 3, P.nose)
+      // Snarl mouth — open dark gap with fang
+      rect(x + 1, y + 4, 9, 1, P.bodyLt)
+      px(x + 4, y + 4, '#3a1010')
+      px(x + 5, y + 4, '#5a1818')
+      px(x + 6, y + 4, '#3a1010')
+      px(x + 5, y + 5, '#f5f5f5') // fang
+      // Torso
+      rect(x + 1, y + 5, 9, 1, P.body); rect(x + 3, y + 5, 4, 1, P.bodyLt)
+      rect(x + 1, y + 6, 9, 1, P.body); rect(x + 3, y + 6, 4, 1, P.bodyLt)
+      rect(x + 2, y + 7, 8, 1, P.body)
+      // Right arm THROWN UP — straight overhead
+      px(x + 10, y + 4, P.bodyDk)
+      px(x + 10, y + 3, P.bodyDk)
+      px(x + 10, y + 2, P.bodyDk)
+      px(x + 10, y + 1, P.bodyDk)
+      // Fist
+      px(x + 9, y, P.body)
+      px(x + 10, y, P.body)
+      px(x + 11, y, P.body)
+      px(x + 9, y - 1, P.bodyDk)
+      px(x + 11, y - 1, P.bodyDk)
+      // Middle finger extended above the fist
+      px(x + 10, y - 1, P.body)
+      px(x + 10, y - 2, P.body)
+      px(x + 10, y - 3, P.bodyLt) // tip
+      // Left arm clenched against body (also raised, less dramatic)
+      px(x + 1, y + 5, P.bodyDk)
+      px(x, y + 5, P.bodyDk)
+      px(x, y + 6, P.body)
+      // Legs hanging down loose
+      drawLegs(x, y, false, 0)
+      // Anime sweat drop on temple
+      px(x - 1, y + 1, '#7fb8ff')
+      px(x - 1, y + 2, '#3d8de0')
+      px(x - 2, y + 2, '#7fb8ff')
+      // Anger marks (vein lines) above head
+      const blink2 = Math.floor(frame / 6) % 2
+      if (blink2 === 0) {
+        px(x + 5, y - 5, '#cc2222')
+        px(x + 4, y - 4, '#cc2222')
+        px(x + 6, y - 4, '#cc2222')
+      }
     }
 
     // Hanging cat — arms stretched up holding the strings
@@ -405,7 +540,9 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     canvas.addEventListener('click', handleClick)
 
     // ─── Phase Machine ───────────────────────────────────
-    const CX = 38, CY = 38
+    // Cat sits low in the canvas so its feet line up with the slot's bottom
+    // edge — closes the gap to the navbar.
+    const CX = 38, CY = 44
 
     function nextAct() {
       act = act === 3 ? 1 : act + 1
@@ -482,6 +619,104 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     // Track when parachute mode started so we can ramp the canopy open.
     let parachuteStartFrame = -1
 
+    // ─── Tangled landing helpers ─────────────────────────
+    // Flat sheet: rectangular drape over cat's head/shoulders + narrow fold
+    // cascading off the left side + flat sheet spread out on the navbar
+    // surface. No rounded blob — fabric obeys gravity and just lays flat.
+    function drawFlatChute(jiggleT, slideX = 0, slideY = 0) {
+      const wob = Math.round(Math.sin(jiggleT * 0.09) * 0.5)
+
+      // Upper drape — covers cat's head (rows 35–38) + shoulders.
+      const upperShape = [
+        [32, 34, 42],
+        [33, 33, 43],
+        [34, 32, 44],
+        [35, 32, 44], // ears row
+        [36, 32, 44],
+        [37, 32, 44], // eyes row
+        [38, 32, 44],
+        [39, 32, 44], // shoulder line — bottom edge of upper drape
+      ]
+
+      // Side fold — narrow strip cascading off the cat's left side down
+      // to the navbar surface.
+      const foldShape = [
+        [40, 30, 33],
+        [41, 28, 32],
+        [42, 26, 31],
+        [43, 24, 30],
+      ]
+
+      // Ground sheet — flat on the navbar surface, extending left far
+      // beyond the cat. Lays at cat's feet level + below.
+      const groundShape = [
+        [44, 0, 31],
+        [45, 0, 28],
+        [46, 0, 24],
+        [47, 0, 19],
+      ]
+
+      function drawShape(shape) {
+        for (let i = 0; i < shape.length; i++) {
+          const [r, c1, c2] = shape[i]
+          const ry = r + slideY
+          if (ry < 0 || ry >= ROWS) continue
+          for (let c = c1 + wob + slideX; c <= c2 + wob + slideX; c++) {
+            if (c < 0 || c >= COLS) continue
+            const seed = (r * 3 + c * 2 + Math.floor(jiggleT / 12)) % 9
+            const color = seed === 0 ? P.chuteHi : seed < 7 ? P.chute : P.chuteDk
+            px(c, ry, color)
+          }
+        }
+      }
+
+      drawShape(groundShape)
+      drawShape(foldShape)
+      drawShape(upperShape)
+
+      // White panel seams suggest the canopy origin and add fabric texture
+      const seams = [
+        [34, 35], [36, 35], [38, 35],
+        [34, 41], [36, 41], [38, 41],
+        [45, 8], [45, 18], [46, 12],
+      ]
+      for (let i = 0; i < seams.length; i++) {
+        const [r, c] = seams[i]
+        const ry = r + slideY
+        const cx = c + wob + slideX
+        if (ry >= 0 && ry < ROWS && cx >= 0 && cx < COLS) px(cx, ry, P.chuteWhite)
+      }
+
+      // Strings — slack on top of fabric
+      const stringPath = [
+        [31, 35], [32, 35], [33, 35], [34, 36],
+        [31, 41], [32, 41], [33, 41], [34, 40],
+        [44, 10], [45, 14], [44, 18], [45, 22],
+      ]
+      for (let i = 0; i < stringPath.length; i++) {
+        const [r, c] = stringPath[i]
+        const ry = r + slideY
+        const cx = c + wob + slideX
+        if (ry >= 0 && ry < ROWS && cx >= 0 && cx < COLS) px(cx, ry, P.string)
+      }
+    }
+
+    // Sweat drop + cycling "?" comic FX on the side of the drape
+    function drawDrapeFX(jiggleT) {
+      // Sweat drop on the right side (away from drape)
+      const dropY = 36 + (Math.floor(jiggleT / 5) % 3)
+      if (dropY < ROWS) {
+        px(48, dropY, '#88ccff')
+        if (dropY + 1 < ROWS) px(48, dropY + 1, '#5599ee')
+      }
+      // ? mark above the drape, blinking in/out
+      if ((Math.floor(jiggleT / 18) % 2) === 0) {
+        px(50, 28, '#ffffff'); px(51, 28, '#ffffff')
+        px(52, 29, '#ffffff'); px(52, 30, '#ffffff')
+        px(51, 31, '#ffffff'); px(51, 33, '#ffffff')
+      }
+    }
+
     // ─── Render ──────────────────────────────────────────
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -490,10 +725,39 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       // ── DEPLOY / DESCENT / LAND (parachute visible) ──
       if (parachuteActiveRef.current) {
         if (parachuteStartFrame < 0) parachuteStartFrame = frame
-        const t = (frame - parachuteStartFrame) / 12 // ~200ms canopy ramp
-        const sway = Math.sin(frame * 0.06) * 0.6
-        drawParachute(t, sway)
-        drawHangingCat()
+        const pF = frame - parachuteStartFrame
+
+        // Canopy: pop open with overshoot (118%), settle to 100%, then breathe gently.
+        let openT
+        if (pF < 14)        openT = (pF / 14) * 1.18
+        else if (pF < 26)   openT = 1.18 - ((pF - 14) / 12) * 0.18
+        else                openT = 1 + Math.sin((pF - 26) * 0.05) * 0.02
+
+        // Damped pendulum tilt — kicks in once canopy is open. In phase with
+        // outer screen-space x-swing so the body leans into the direction it's
+        // moving, like a real pendulum bob.
+        let tilt = 0
+        if (pF > 26) {
+          const sec = (pF - 26) / 60
+          const env = Math.exp(-0.5 * sec)
+          tilt = 0.10 * env * Math.sin(2 * Math.PI * 0.55 * sec)
+        }
+
+        // Pivot at canopy top so the cat sweeps a wider arc below it.
+        const pivotX = 38 * S
+        const pivotY = 4 * S
+        ctx.save()
+        ctx.translate(pivotX, pivotY)
+        ctx.rotate(tilt)
+        ctx.translate(-pivotX, -pivotY)
+        const angryNow = angryPoseRef.current && pF > 14
+        // Canopy deflates in the last stretch of descent — loses lift before touchdown.
+        const canopyScale = 1 - deflationRef.current * 0.55
+        drawParachute(openT, 0, angryNow, canopyScale)
+        if (angryNow) drawAngryCat()
+        else drawHangingCat()
+        ctx.restore()
+
         frame++
         rafRef.current = requestAnimationFrame(render)
         return
@@ -668,6 +932,26 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     }
   }, [])
 
+  // Reset document.body transform if the component unmounts mid-cinematic.
+  useEffect(() => {
+    return () => {
+      if (cameraRafRef.current) cancelAnimationFrame(cameraRafRef.current)
+      cameraRafRef.current = null
+      cameraActiveRef.current = false
+      document.body.style.transform = ''
+      document.body.style.transformOrigin = ''
+      document.body.style.willChange = ''
+      if (typeof document !== 'undefined') {
+        document.documentElement.style.overflow = ''
+      }
+      const rootEl = typeof document !== 'undefined' ? document.getElementById('root') : null
+      if (rootEl) {
+        rootEl.style.filter = ''
+        rootEl.style.willChange = ''
+      }
+    }
+  }, [])
+
   // ─── Pointer / drag handling ────────────────────────
   // Mode stays 'normal' until movement crosses the threshold; only THEN do we
   // switch into 'drag'. Pure clicks (no real movement) never enter drag mode,
@@ -758,18 +1042,202 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       return () => clearTimeout(t)
     }
     if (mode === 'deploy') {
-      // Hold position while the canopy pops open in the canvas.
-      const t = setTimeout(() => setMode('descent'), 200)
+      // Canopy catches air — body decelerates sharply and gets yanked up.
+      // Camera engages here. Cat is held in place through cinematic; descent
+      // starts when the camera begins to zoom OUT, so the world pulls back
+      // and reveals the cat already drifting toward the nav.
+      const startY = targetRef.current.y
+      setTarget({ x: targetRef.current.x, y: startY - 28 })
+
+      // Anime punch-in sound — quick swoosh + thunk
+      playPunchSound()
+
+      // ── Camera: scale the document, not the cat ────────────────
+      // Phases: zoom in → frozen hold (angry beat) → tracking hold (cat
+      // descends, camera follows at peak zoom) → zoom out (triggered on land).
+      const W = 64 * size
+      const H = 48 * size
+      const ZOOM_IN = 380
+      const ANGRY_BEAT = 1100
+      const ZOOM_OUT = 460
+      const SL_FADE_OUT = 320
+      const PEAK_SCALE = 2.5
+      const MAX_BLUR = 3 // px at peak zoom — light DOF feel
+      // Cat's actual body center in canvas pixel coords (not canvas center)
+      const CAT_FOCUS_X = 38 * size
+      const CAT_FOCUS_Y = 40 * size
+      const camStart = performance.now()
+      // Capture scroll position so the cat keeps its viewport slot location
+      // even when the page is scrolled and body becomes the containing block.
+      const scrollLockY = typeof window !== 'undefined' ? window.scrollY : 0
+      const scrollLockX = typeof window !== 'undefined' ? window.scrollX : 0
+      setCinematicShiftY(scrollLockY)
+      // Lock html scroll for the duration of the cinematic so the offset stays consistent.
+      const docEl = typeof document !== 'undefined' ? document.documentElement : null
+      const prevHtmlOverflow = docEl ? docEl.style.overflow : ''
+      if (docEl) docEl.style.overflow = 'hidden'
+      let camFocusX = targetRef.current.x + CAT_FOCUS_X
+      let camFocusY = targetRef.current.y + CAT_FOCUS_Y
+      let zoomOutStart = -1
+
+      cameraActiveRef.current = true
+      document.body.style.willChange = 'transform'
+      const rootEl = typeof document !== 'undefined' ? document.getElementById('root') : null
+      if (rootEl) rootEl.style.willChange = 'filter'
+
+      const camStep = (now) => {
+        const elapsed = now - camStart
+
+        // Cat has reached the nav (descent RAF flips mode → 'land')
+        if (zoomOutStart < 0 && modeRef.current === 'land') {
+          zoomOutStart = elapsed
+        }
+
+        // Angry pose window: visible from full zoom-in through the "beat",
+        // then back to hanging cat while camera continues tracking descent.
+        angryPoseRef.current =
+          elapsed >= ZOOM_IN && elapsed < ZOOM_IN + ANGRY_BEAT && zoomOutStart < 0
+
+        // Compute scale + base opacity
+        let scale, opacity
+        if (elapsed < ZOOM_IN) {
+          const p = elapsed / ZOOM_IN
+          const ease = 1 - Math.pow(1 - p, 3)
+          scale = 1 + (PEAK_SCALE - 1) * ease
+          opacity = ease
+        } else if (zoomOutStart < 0) {
+          // Holding (frozen + tracking) — could last seconds while cat descends
+          scale = PEAK_SCALE
+          opacity = 1
+        } else {
+          const outElapsed = elapsed - zoomOutStart
+          const p = Math.min(1, outElapsed / ZOOM_OUT)
+          const ease = 1 - Math.pow(1 - p, 2)
+          scale = PEAK_SCALE + (1 - PEAK_SCALE) * ease
+          opacity = 1 - ease
+          if (outElapsed >= ZOOM_OUT) {
+            document.body.style.transform = ''
+            document.body.style.transformOrigin = ''
+            document.body.style.willChange = ''
+            if (docEl) docEl.style.overflow = prevHtmlOverflow
+            setCinematicShiftY(0)
+            if (rootEl) {
+              rootEl.style.filter = ''
+              rootEl.style.willChange = ''
+            }
+            if (speedLinesRef.current) speedLinesRef.current.style.opacity = '0'
+            if (backdropRef.current) backdropRef.current.style.opacity = '0'
+            cameraActiveRef.current = false
+            angryPoseRef.current = false
+            cameraRafRef.current = null
+            return
+          }
+        }
+
+        // Speed lines: only during the angry beat — fade in with zoom, hold
+        // through the freeze, fade out as the cat starts descending. No
+        // speed lines during the calm descent tracking.
+        let slOpacity
+        const slPeak = 0.45
+        if (elapsed < ZOOM_IN) {
+          slOpacity = (elapsed / ZOOM_IN) * slPeak
+        } else if (elapsed < ZOOM_IN + ANGRY_BEAT) {
+          slOpacity = slPeak
+        } else if (elapsed < ZOOM_IN + ANGRY_BEAT + SL_FADE_OUT) {
+          slOpacity = (1 - (elapsed - ZOOM_IN - ANGRY_BEAT) / SL_FADE_OUT) * slPeak
+        } else {
+          slOpacity = 0
+        }
+
+        // Track cat's BODY center (CY-4 ≈ chest), not the canvas center —
+        // the canvas has a lot of empty space above the cat where the
+        // parachute lives.
+        const catCx = targetRef.current.x + CAT_FOCUS_X
+        const catCy = targetRef.current.y + CAT_FOCUS_Y
+        camFocusX += (catCx - camFocusX) * 0.18
+        camFocusY += (catCy - camFocusY) * 0.20
+        // body's transform-origin is in body coords; viewport y → body y by + scrollY
+        document.body.style.transformOrigin = `${camFocusX + scrollLockX}px ${camFocusY + scrollLockY}px`
+        document.body.style.transform = `scale(${scale})`
+
+        // Lens DOF — blur the page (everything inside #root) while the
+        // camera is engaged. Cat is portal'd OUTSIDE #root so it stays sharp.
+        if (rootEl) {
+          const blurAmount = Math.max(0, (scale - 1)) * (MAX_BLUR / (PEAK_SCALE - 1))
+          rootEl.style.filter = blurAmount > 0.05 ? `blur(${blurAmount.toFixed(2)}px)` : ''
+        }
+
+        if (speedLinesRef.current) {
+          const el = speedLinesRef.current
+          el.style.left = `${catCx}px`
+          el.style.top = `${catCy}px`
+          el.style.opacity = String(slOpacity)
+          el.style.transform = `translate(-50%, -50%) rotate(${elapsed * 0.05}deg)`
+        }
+        if (backdropRef.current) {
+          // Slightly lighter dim during the long tracking; full dim during freeze.
+          const bdBase = elapsed < ZOOM_IN + ANGRY_BEAT ? 0.32 : 0.22
+          backdropRef.current.style.opacity = String(opacity * bdBase)
+        }
+        cameraRafRef.current = requestAnimationFrame(camStep)
+      }
+      cameraRafRef.current = requestAnimationFrame(camStep)
+
+      // After the body-yank settles (~320ms), descent kicks in immediately.
+      // The cat keeps moving smoothly while the camera dance plays out.
+      const t = setTimeout(() => setMode('descent'), 320)
       return () => clearTimeout(t)
     }
     if (mode === 'descent') {
-      // Float gently down to home with the parachute fully open.
-      setTarget({ x: homeRef.current.x, y: homeRef.current.y })
-      const t = setTimeout(() => setMode('land'), 2500)
-      return () => clearTimeout(t)
+      // Drive position imperatively at 60fps so we can layer pendulum swing
+      // on top of the gentle drift to home. Framer Motion's transition is
+      // duration: 0 during descent — see transitionFor.
+      const startTime = performance.now()
+      const startX = targetRef.current.x
+      const startY = targetRef.current.y
+      const duration = 2800
+      const swingAmp = 32      // px peak
+      const swingFreq = 0.55   // Hz — about a swing every 1.8s
+      const swingDecay = 0.5   // 1/s — decays to ~25% over duration
+
+      let raf = null
+      let cancelled = false
+      const step = (now) => {
+        if (cancelled) return
+        const elapsed = now - startTime
+        const t = Math.min(1, elapsed / duration)
+
+        // Vertical: ease-out drift toward landing
+        const yEase = 1 - Math.pow(1 - t, 1.5)
+        const homeX = homeRef.current.x
+        const homeY = homeRef.current.y
+        const y = startY + (homeY - startY) * yEase
+
+        // Final-30% swing damp: ramp the envelope to 0 at touchdown so the
+        // cat lines up vertically and doesn't land mid-swing.
+        const finalDamp = t < 0.7 ? 1 : Math.max(0, 1 - (t - 0.7) / 0.3)
+        const sec = elapsed / 1000
+        const env = Math.exp(-swingDecay * sec) * finalDamp
+        const swing = swingAmp * env * Math.sin(2 * Math.PI * swingFreq * sec)
+        const x = startX + (homeX - startX) * t + swing
+
+        // Last 22% of descent: canopy starts deflating (loses lift before touchdown)
+        deflationRef.current = t < 0.78 ? 0 : Math.min(1, (t - 0.78) / 0.22)
+
+        setTarget({ x: Math.round(x), y: Math.round(y) })
+
+        if (t < 1) raf = requestAnimationFrame(step)
+        else setMode('land')
+      }
+      raf = requestAnimationFrame(step)
+      return () => {
+        cancelled = true
+        if (raf) cancelAnimationFrame(raf)
+      }
     }
     if (mode === 'land') {
-      const t = setTimeout(() => setMode('normal'), 200)
+      // Squash settle then resume the normal act loop.
+      const t = setTimeout(() => setMode('normal'), 240)
       return () => clearTimeout(t)
     }
   }, [mode])
@@ -780,9 +1248,9 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       case 'fall':     return { duration: 0.6, ease: [0.5, 0, 0.85, 0.4] }    // gravity ease-in
       case 'gap':      return { duration: 0 }                                  // instant snap
       case 'freefall': return { duration: 0.7, ease: [0.5, 0, 0.85, 0.4] }    // gravity ease-in
-      case 'deploy':   return { duration: 0 }                                  // hold
-      case 'descent':  return { duration: 2.5, ease: [0.42, 0.4, 0.58, 0.6] } // near-linear glide
-      case 'land':     return { duration: 0.2, ease: 'easeOut' }
+      case 'deploy':   return { duration: 0.32, ease: [0.2, 0.85, 0.4, 1] }   // sharp yank up as canopy catches air
+      case 'descent':  return { duration: 0 }                                  // RAF drives target each frame
+      case 'land':     return { duration: 0.22, ease: 'easeOut', times: [0, 0.3, 0.65, 1] } // squash → rebound → settle
       case 'drag':     return { duration: 0 }                                  // instant follow
       default:         return { duration: 0 }                                  // normal: snap to home
     }
@@ -790,12 +1258,23 @@ export default function ClaudePixel({ size = 6, detective = false }) {
 
   const W = 64 * size
   const H = 48 * size
+  // Slot reserves only as much vertical space as the cat actually occupies
+  // (cat's bottom pixel is at canvas row 44 → 45 rows tall). Closes the
+  // visual gap between cat's feet and the navbar's bottom edge. The canvas
+  // itself stays 48 rows tall so the parachute area above + ground sheet
+  // below have room.
+  const SLOT_H = 45 * size
 
   const overlay = (
     <motion.div
       ref={overlayRef}
       initial={false}
-      animate={{ x: target.x, y: target.y }}
+      animate={{
+        x: target.x,
+        y: target.y + cinematicShiftY,
+        scaleX: mode === 'land' ? [1, 1.18, 0.96, 1] : 1,
+        scaleY: mode === 'land' ? [1, 0.78, 1.06, 1] : 1,
+      }}
       transition={transitionFor(mode)}
       style={{
         position: 'fixed',
@@ -808,6 +1287,9 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         cursor: mode === 'drag' ? 'grabbing' : 'grab',
         touchAction: 'none',
         willChange: 'transform',
+        // Pivot squash from the cat's feet (row 44 / 48 ≈ 91.7%) so the
+        // body compresses upward on impact rather than around its center.
+        transformOrigin: '50% 91.7%',
       }}
     >
       <canvas
@@ -821,15 +1303,69 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     </motion.div>
   )
 
+  // Subtle vignette dim during cinematic — opacity driven imperatively from the camera RAF.
+  const backdrop = (
+    <div
+      ref={backdropRef}
+      aria-hidden="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'radial-gradient(circle at center, transparent 18%, rgba(0,0,0,0.55) 78%)',
+        zIndex: 55,
+        pointerEvents: 'none',
+        opacity: 0,
+      }}
+    />
+  )
+
+  // Comic-style radial speed lines — position, opacity, and rotation imperatively driven.
+  // Lives inside body so it scales with the camera, growing into a full-frame burst.
+  const SL_SIZE = 720
+  const speedLines = (
+    <div
+      ref={speedLinesRef}
+      aria-hidden="true"
+      style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        width: SL_SIZE,
+        height: SL_SIZE,
+        // Lines use currentColor → CSS var → auto-contrast with theme
+        // (dark text in light mode, light text in dark mode).
+        color: 'var(--text-primary, #1a1a1a)',
+        background:
+          'repeating-conic-gradient(from 0deg at 50% 50%, currentColor 0deg 1.5deg, transparent 1.5deg 16deg)',
+        WebkitMask:
+          'radial-gradient(circle, transparent 60px, black 110px, black 320px, transparent 360px)',
+        mask:
+          'radial-gradient(circle, transparent 60px, black 110px, black 320px, transparent 360px)',
+        pointerEvents: 'none',
+        zIndex: 58,
+        opacity: 0,
+        transform: 'translate(-50%, -50%)',
+      }}
+    />
+  )
+
   return (
     <>
       {/* Slot — reserves layout space at the navbar; the actual cat is portal'd. */}
       <div
         ref={slotRef}
-        style={{ width: W, height: H, display: 'inline-block' }}
+        style={{ width: W, height: SLOT_H, display: 'inline-block' }}
         aria-hidden="true"
       />
-      {typeof document !== 'undefined' && createPortal(overlay, document.body)}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            {backdrop}
+            {speedLines}
+            {overlay}
+          </>,
+          document.body
+        )}
     </>
   )
 }

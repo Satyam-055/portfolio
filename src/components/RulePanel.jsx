@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ParsePipeline from './ParsePipeline'
+import PdfViewer from './PdfViewer'
 
 export default function RulePanel({ rule, onClose }) {
   const example = rule?.example
@@ -185,6 +186,10 @@ function Media({ media }) {
         ))}
       </div>
     )
+  }
+
+  if (media.type === 'pdf') {
+    return <PdfViewer src={media.src} label={media.label} />
   }
 
   if (media.type === 'tabbed') {

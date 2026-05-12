@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
 import RulePanel from '../components/RulePanel'
+import PdfViewer from '../components/PdfViewer'
 import projects from '../data/projects'
 
 /* ─── Preview Block ─────────────────────────────────────── */
@@ -522,15 +523,22 @@ function ScrollablePreview({ src, alt, caption, height = 480 }) {
 }
 
 function DSFigure({ src, alt, caption, wide = false }) {
-  if (wide) {
-    return (
+  const [zoomed, setZoomed] = useState(false)
+
+  const imgClass = "block w-full h-auto cursor-zoom-in"
+
+  return (
+    <>
       <figure className="my-6">
-        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        <div
+          className={`rounded-xl border border-[var(--border)] overflow-hidden${wide ? ' overflow-x-auto' : ''}`}
+          onClick={() => setZoomed(true)}
+        >
           <img
             src={src}
             alt={alt}
             loading="lazy"
-            className="block min-w-[900px] sm:min-w-0 w-full h-auto"
+            className={wide ? `${imgClass} min-w-[900px] sm:min-w-0` : imgClass}
           />
         </div>
         {caption && (
@@ -542,25 +550,81 @@ function DSFigure({ src, alt, caption, wide = false }) {
           </figcaption>
         )}
       </figure>
-    )
-  }
-  return (
-    <figure className="my-6">
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className="w-full h-auto rounded-xl border border-[var(--border)]"
-      />
-      {caption && (
-        <figcaption
-          className="text-[12px] italic text-[var(--text-muted)] mt-2"
-          style={{ fontFamily: "'Work Sans', sans-serif" }}
+
+      {zoomed && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 cursor-zoom-out"
+          onClick={() => setZoomed(false)}
         >
-          {caption}
-        </figcaption>
+          <button
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+            onClick={() => setZoomed(false)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <img
+            src={src}
+            alt={alt}
+            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
-    </figure>
+    </>
+  )
+}
+
+/* ─── Scoped Tabs (mobile / desktop variants) ──────────── */
+function ScopeTabs({ tabs }) {
+  const [active, setActive] = useState(0)
+  return (
+    <div className="mt-4">
+      <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px] mb-3">
+        {tabs.map((tab, i) => (
+          <button
+            key={tab.label}
+            onClick={() => setActive(i)}
+            className={`px-3.5 py-1.5 rounded-[5px] text-[12px] font-medium transition-colors
+              ${i === active
+                ? 'bg-[var(--panel-tab-active)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <DSFigure src={tabs[active].src} alt={tabs[active].label} caption={tabs[active].caption} wide />
+    </div>
+  )
+}
+
+/* ─── Journey Tabs (PDF) ────────────────────────────────── */
+function JourneyTabs({ journeys }) {
+  const [active, setActive] = useState(0)
+  return (
+    <div className="mb-10">
+      <h3 className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[var(--text-secondary)] mb-3"
+          style={{ fontFamily: '"Work Sans", "Inter", sans-serif' }}>
+        User journeys
+      </h3>
+      <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px] mb-3">
+        {journeys.map((j, i) => (
+          <button
+            key={j.label}
+            onClick={() => setActive(i)}
+            className={`px-3.5 py-1.5 rounded-[5px] text-[12px] font-medium transition-colors
+              ${i === active
+                ? 'bg-[var(--panel-tab-active)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+          >
+            {j.label}
+          </button>
+        ))}
+      </div>
+      <PdfViewer src={journeys[active].src} label={journeys[active].label} />
+    </div>
   )
 }
 
@@ -1086,6 +1150,26 @@ export default function ProjectDetail() {
                 </Reveal>
               )}
 
+              {/* Moodboard */}
+              {content.moodboard && (
+                <Reveal>
+                  <h3 className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[var(--text-secondary)] mb-3"
+                      style={{ fontFamily: '"Work Sans", "Inter", sans-serif' }}>
+                    Moodboard
+                  </h3>
+                  <div className="mb-10">
+                    <PdfViewer src={content.moodboard.src} label={content.moodboard.label} />
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Journey maps */}
+              {content.journeys && (
+                <Reveal>
+                  <JourneyTabs journeys={content.journeys} />
+                </Reveal>
+              )}
+
               {/* Pain points — only if defined */}
               {content.painPoints && (
                 <Reveal>
@@ -1243,10 +1327,18 @@ export default function ProjectDetail() {
                         {item.sizes && (
                           <TabbedFigure tabs={item.sizes} ratio="16 / 9" />
                         )}
-                        {!item.sizes && item.imagePlaceholder && (
+                        {item.tabs && (
+                          <ScopeTabs tabs={item.tabs} />
+                        )}
+                        {item.pdf && (
+                          <div className="mt-4">
+                            <PdfViewer src={item.pdf} label={item.pdfLabel} />
+                          </div>
+                        )}
+                        {!item.sizes && !item.tabs && !item.pdf && item.imagePlaceholder && (
                           <ImgPlaceholder description={item.imagePlaceholder} ratio="21 / 9" />
                         )}
-                        {!item.sizes && item.image && (
+                        {!item.sizes && !item.tabs && !item.pdf && item.image && (
                           <DSFigure src={item.image} alt={item.alt} caption={item.caption} wide />
                         )}
                       </div>

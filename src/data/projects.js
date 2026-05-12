@@ -547,6 +547,16 @@ const projects = [
         { competitor: 'Empower', learning: 'Anti-pattern: users must type "MANUAL" as a search keyword to find manual creation. Hidden by design.' },
       ],
 
+      moodboard: {
+        src: '/case-studies/manual-account/moodboard.pdf',
+        label: 'Manual Account Creation — Moodboard',
+      },
+
+      journeys: [
+        { label: 'Journey 1', src: '/case-studies/manual-account/journey-1.pdf' },
+        { label: 'Journey 2', src: '/case-studies/manual-account/journey-2.pdf' },
+      ],
+
       painPoints: [
         {
           severity: 'Critical',
@@ -616,13 +626,15 @@ const projects = [
 
       scopeShowcase: [
         {
-          title: 'Entry point A',
-          body: 'From Add Account, the account type selector always ends with "Having trouble? Create manually." The path is visible before anything goes wrong — it\'s an intentional choice, not a last resort.',
-          image: '/case-studies/manual-account/Modal.webp',
-          alt: 'Select account type modal — Brokerages, Bank & credit cards, Liabilities, with Create manually link at bottom',
+          title: 'Entry point A — Add Account',
+          body: 'From Add Account, the account type selector always ends with "Having trouble? Create manually." The path is visible before anything goes wrong — an intentional choice, not a last resort.',
+          tabs: [
+            { label: 'Desktop', src: '/case-studies/manual-account/Modal.webp', alt: 'Select account type modal — desktop' },
+            { label: 'Mobile', src: '/case-studies/manual-account/Bottom-sheet.webp', alt: 'Select account type bottom sheet — mobile' },
+          ],
         },
         {
-          title: 'Entry point B',
+          title: 'Entry point B — Connection failure',
           body: 'When automatic connection fails, the error screen doesn\'t dead-end. It pivots: "You can still add this account by uploading a recent statement." Trust copy and a single CTA — no hunting for a workaround.',
           image: '/case-studies/manual-account/Modal-1.webp',
           alt: 'Couldn\'t connect to Fidelity modal — Create manual account CTA with statement upload illustration',
