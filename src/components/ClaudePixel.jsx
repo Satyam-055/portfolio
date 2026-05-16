@@ -1,5 +1,5 @@
 /**
- * ClaudePixel — Pixel animation of Claude the cat.
+ * ClaudePixel  -  Pixel animation of Claude the cat.
  * 3-act loop: 1) Code on laptop → 2) Take a photo → 3) Ride a red bike → repeat
  * Drag the cat off the navbar to launch it; it parachutes back from the sky.
  */
@@ -8,7 +8,7 @@ import { useRef, useEffect, useState, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 
-// Lazy AudioContext — created on first call (must be from a user-gesture stack
+// Lazy AudioContext  -  created on first call (must be from a user-gesture stack
 // like dragend, which is how the cinematic kicks off).
 let audioCtx = null
 function playPunchSound() {
@@ -56,13 +56,13 @@ function playPunchSound() {
     osc.start(thunkStart)
     osc.stop(thunkStart + thunkDur + 0.02)
   } catch (_) {
-    // Audio unavailable — fail silently
+    // Audio unavailable  -  fail silently
   }
 }
 
-export default function ClaudePixel({ size = 6, detective = false }) {
+export default function ClaudePixel({ size = 6, detective = false, onDrop }) {
   const canvasRef = useRef(null)
-  const slotRef = useRef(null)        // empty div in flow at the navbar — holds layout space
+  const slotRef = useRef(null)        // empty div in flow at the navbar  -  holds layout space
   const overlayRef = useRef(null)     // portal'd motion.div containing the canvas
   const rafRef = useRef(null)
   const detectiveRef = useRef(detective)
@@ -178,7 +178,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
 
     // ─── Detective hat (fedora) ─────────────────────────
     function drawHat(x, y) {
-      // Brim — wide, dark
+      // Brim  -  wide, dark
       rect(x, y - 1, 11, 1, '#222')
       px(x - 1, y - 1, '#333')
       px(x + 11, y - 1, '#333')
@@ -199,7 +199,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         px(x + 7, legY, P.bodyDk); px(x + 7, legY + 1, P.bodyDk2)
         px(x + 9, legY, P.bodyDk); px(x + 9, legY + 1, P.bodyDk2)
       } else {
-        // Pedaling legs — alternate up/down
+        // Pedaling legs  -  alternate up/down
         const oA = Math.sin(pedalA) > 0 ? 0 : 1
         const oB = Math.sin(pedalA) > 0 ? 1 : 0
         px(x + 3, legY + oA, P.bodyDk); px(x + 3, legY + 1 + oA, P.bodyDk2)
@@ -278,11 +278,11 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
 
-    // ─── Act 3: Cafe Racer (RE GT 650) — clean silhouette ─
+    // ─── Act 3: Cafe Racer (RE GT 650)  -  clean silhouette ─
     function drawMoto(bx, by, wheelAngle) {
       // bx = left edge of rear wheel center, by = wheel center Y
 
-      // ── Wheels — simple clean circles ──
+      // ── Wheels  -  simple clean circles ──
       const rW = bx, fW = bx + 16 // rear & front wheel X
       function drawWheel(wx) {
         // Tire ring
@@ -301,13 +301,13 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       drawWheel(rW)
       drawWheel(fW)
 
-      // ── Frame — single clean backbone ──
+      // ── Frame  -  single clean backbone ──
       for (let i = 3; i <= 14; i++) px(bx + i, by - 5, P.chromeDk) // main tube
 
       // ── Engine (simple block under frame) ──
       rect(bx + 5, by - 4, 4, 3, P.chrome)
       rect(bx + 6, by - 4, 2, 1, P.chromeDk) // head
-      // Exhaust — single pipe sweeping back
+      // Exhaust  -  single pipe sweeping back
       px(bx + 4, by - 2, P.exhaust); px(bx + 3, by - 1, P.exhaust)
       px(bx + 2, by - 1, P.exhaust); px(bx + 1, by - 1, P.chrome) // tip
 
@@ -406,7 +406,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         }
         px(38 + sx, 4, P.chuteWhite); px(38 + sx, 5, P.chuteWhite)
       }
-      // Strings — extend down to just above the cat's new head position.
+      // Strings  -  extend down to just above the cat's new head position.
       if (openT > 0.5) {
         const ends = [
           [22, 13, 33, 33],
@@ -429,7 +429,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       }
     }
 
-    // Skydiving cat — arms spread wide, free-falling pose (no parachute)
+    // Skydiving cat  -  arms spread wide, free-falling pose (no parachute)
     function drawSkydiveCat() {
       const wob = Math.floor(frame / 3) % 2
       const { x, y } = drawBody(CX, CY + wob, 0, 'right')
@@ -444,7 +444,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       px(x + 10, y + 8, P.bodyDk); px(x + 11, y + 9, P.bodyDk2)
     }
 
-    // Angry cat with middle finger raised — anime cut-in pose
+    // Angry cat with middle finger raised  -  anime cut-in pose
     function drawAngryCat() {
       const x = CX - 5
       const y = CY - 9
@@ -466,7 +466,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       // Cheeks + nose row
       rect(x + 1, y + 3, 9, 1, P.body)
       px(x + 4, y + 3, P.nose); px(x + 5, y + 3, P.nose)
-      // Snarl mouth — open dark gap with fang
+      // Snarl mouth  -  open dark gap with fang
       rect(x + 1, y + 4, 9, 1, P.bodyLt)
       px(x + 4, y + 4, '#3a1010')
       px(x + 5, y + 4, '#5a1818')
@@ -476,7 +476,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       rect(x + 1, y + 5, 9, 1, P.body); rect(x + 3, y + 5, 4, 1, P.bodyLt)
       rect(x + 1, y + 6, 9, 1, P.body); rect(x + 3, y + 6, 4, 1, P.bodyLt)
       rect(x + 2, y + 7, 8, 1, P.body)
-      // Right arm THROWN UP — straight overhead
+      // Right arm THROWN UP  -  straight overhead
       px(x + 10, y + 4, P.bodyDk)
       px(x + 10, y + 3, P.bodyDk)
       px(x + 10, y + 2, P.bodyDk)
@@ -510,7 +510,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       }
     }
 
-    // Hanging cat — arms stretched up holding the strings
+    // Hanging cat  -  arms stretched up holding the strings
     function drawHangingCat() {
       const breathY = Math.sin(frame * 0.04) > 0.6 ? -1 : 0
       const { x, y } = drawBody(CX, CY, breathY, 'right')
@@ -541,7 +541,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
 
     // ─── Phase Machine ───────────────────────────────────
     // Cat sits low in the canvas so its feet line up with the slot's bottom
-    // edge — closes the gap to the navbar.
+    // edge  -  closes the gap to the navbar.
     const CX = 38, CY = 44
 
     function nextAct() {
@@ -622,11 +622,11 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     // ─── Tangled landing helpers ─────────────────────────
     // Flat sheet: rectangular drape over cat's head/shoulders + narrow fold
     // cascading off the left side + flat sheet spread out on the navbar
-    // surface. No rounded blob — fabric obeys gravity and just lays flat.
+    // surface. No rounded blob  -  fabric obeys gravity and just lays flat.
     function drawFlatChute(jiggleT, slideX = 0, slideY = 0) {
       const wob = Math.round(Math.sin(jiggleT * 0.09) * 0.5)
 
-      // Upper drape — covers cat's head (rows 35–38) + shoulders.
+      // Upper drape  -  covers cat's head (rows 35–38) + shoulders.
       const upperShape = [
         [32, 34, 42],
         [33, 33, 43],
@@ -635,10 +635,10 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         [36, 32, 44],
         [37, 32, 44], // eyes row
         [38, 32, 44],
-        [39, 32, 44], // shoulder line — bottom edge of upper drape
+        [39, 32, 44], // shoulder line  -  bottom edge of upper drape
       ]
 
-      // Side fold — narrow strip cascading off the cat's left side down
+      // Side fold  -  narrow strip cascading off the cat's left side down
       // to the navbar surface.
       const foldShape = [
         [40, 30, 33],
@@ -647,7 +647,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         [43, 24, 30],
       ]
 
-      // Ground sheet — flat on the navbar surface, extending left far
+      // Ground sheet  -  flat on the navbar surface, extending left far
       // beyond the cat. Lays at cat's feet level + below.
       const groundShape = [
         [44, 0, 31],
@@ -687,7 +687,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         if (ry >= 0 && ry < ROWS && cx >= 0 && cx < COLS) px(cx, ry, P.chuteWhite)
       }
 
-      // Strings — slack on top of fabric
+      // Strings  -  slack on top of fabric
       const stringPath = [
         [31, 35], [32, 35], [33, 35], [34, 36],
         [31, 41], [32, 41], [33, 41], [34, 40],
@@ -733,7 +733,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         else if (pF < 26)   openT = 1.18 - ((pF - 14) / 12) * 0.18
         else                openT = 1 + Math.sin((pF - 26) * 0.05) * 0.02
 
-        // Damped pendulum tilt — kicks in once canopy is open. In phase with
+        // Damped pendulum tilt  -  kicks in once canopy is open. In phase with
         // outer screen-space x-swing so the body leans into the direction it's
         // moving, like a real pendulum bob.
         let tilt = 0
@@ -751,7 +751,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         ctx.rotate(tilt)
         ctx.translate(-pivotX, -pivotY)
         const angryNow = angryPoseRef.current && pF > 14
-        // Canopy deflates in the last stretch of descent — loses lift before touchdown.
+        // Canopy deflates in the last stretch of descent  -  loses lift before touchdown.
         const canopyScale = 1 - deflationRef.current * 0.55
         drawParachute(openT, 0, angryNow, canopyScale)
         if (angryNow) drawAngryCat()
@@ -777,7 +777,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         return
       }
 
-      // ── FALL / GAP / FREEFALL (no parachute yet — skydive pose) ──
+      // ── FALL / GAP / FREEFALL (no parachute yet  -  skydive pose) ──
       if (modeRef.current === 'fall' || modeRef.current === 'gap' || modeRef.current === 'freefall') {
         drawSkydiveCat()
         frame++
@@ -811,7 +811,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
           rect(camX + 1, 38, 4, 2, P.camLens)
           // Fire on camera
           if (tumbleT > 15) drawFire(camX + 3, 37, Math.min(tumbleT - 15, 8))
-          // Cat reacting — stepped back, shocked
+          // Cat reacting  -  stepped back, shocked
           const { x, y } = drawBody(CX + 6, CY, 0, 'left')
           drawLegs(x, y, false, 0)
           // Arms up in shock
@@ -832,7 +832,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
           drawFallenCat(18, 39)
         }
 
-        // Recovery — after tumble duration, reset to next act
+        // Recovery  -  after tumble duration, reset to next act
         if (tumbleT > TUMBLE_DURATION) {
           tumble = false
           tumbleT = 0
@@ -911,7 +911,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
   // The slot is an empty div in the navbar that reserves space. The actual
   // cat is portal'd to <body> at position:fixed, and animates to the slot's
   // viewport coordinates. This keeps the cat's positioning context stable
-  // through every phase — no relative↔fixed switching.
+  // through every phase  -  no relative↔fixed switching.
   useLayoutEffect(() => {
     function updateHome() {
       const slot = slotRef.current
@@ -988,9 +988,9 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
-      if (!switchedToDrag) return // pure click — let canvas click handler fire
+      if (!switchedToDrag) return // pure click  -  let canvas click handler fire
 
-      // Determine if the cat ended up still over the navbar — if so, snap back.
+      // Determine if the cat ended up still over the navbar  -  if so, snap back.
       const navEl = slotRef.current?.parentElement?.parentElement
       const navRect = navEl?.getBoundingClientRect()
       const cur = targetRef.current
@@ -1010,6 +1010,8 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         setMode('normal')
       } else {
         setMode('fall')
+        onDrop?.()
+        window.dispatchEvent(new Event('cat-dropped'))
       }
     }
 
@@ -1042,14 +1044,14 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       return () => clearTimeout(t)
     }
     if (mode === 'deploy') {
-      // Canopy catches air — body decelerates sharply and gets yanked up.
+      // Canopy catches air  -  body decelerates sharply and gets yanked up.
       // Camera engages here. Cat is held in place through cinematic; descent
       // starts when the camera begins to zoom OUT, so the world pulls back
       // and reveals the cat already drifting toward the nav.
       const startY = targetRef.current.y
       setTarget({ x: targetRef.current.x, y: startY - 28 })
 
-      // Anime punch-in sound — quick swoosh + thunk
+      // Anime punch-in sound  -  quick swoosh + thunk
       playPunchSound()
 
       // ── Camera: scale the document, not the cat ────────────────
@@ -1062,7 +1064,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
       const ZOOM_OUT = 460
       const SL_FADE_OUT = 320
       const PEAK_SCALE = 2.5
-      const MAX_BLUR = 3 // px at peak zoom — light DOF feel
+      const MAX_BLUR = 3 // px at peak zoom  -  light DOF feel
       // Cat's actual body center in canvas pixel coords (not canvas center)
       const CAT_FOCUS_X = 38 * size
       const CAT_FOCUS_Y = 40 * size
@@ -1106,7 +1108,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
           scale = 1 + (PEAK_SCALE - 1) * ease
           opacity = ease
         } else if (zoomOutStart < 0) {
-          // Holding (frozen + tracking) — could last seconds while cat descends
+          // Holding (frozen + tracking)  -  could last seconds while cat descends
           scale = PEAK_SCALE
           opacity = 1
         } else {
@@ -1134,7 +1136,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
           }
         }
 
-        // Speed lines: only during the angry beat — fade in with zoom, hold
+        // Speed lines: only during the angry beat  -  fade in with zoom, hold
         // through the freeze, fade out as the cat starts descending. No
         // speed lines during the calm descent tracking.
         let slOpacity
@@ -1149,7 +1151,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
           slOpacity = 0
         }
 
-        // Track cat's BODY center (CY-4 ≈ chest), not the canvas center —
+        // Track cat's BODY center (CY-4 ≈ chest), not the canvas center  - 
         // the canvas has a lot of empty space above the cat where the
         // parachute lives.
         const catCx = targetRef.current.x + CAT_FOCUS_X
@@ -1160,7 +1162,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
         document.body.style.transformOrigin = `${camFocusX + scrollLockX}px ${camFocusY + scrollLockY}px`
         document.body.style.transform = `scale(${scale})`
 
-        // Lens DOF — blur the page (everything inside #root) while the
+        // Lens DOF  -  blur the page (everything inside #root) while the
         // camera is engaged. Cat is portal'd OUTSIDE #root so it stays sharp.
         if (rootEl) {
           const blurAmount = Math.max(0, (scale - 1)) * (MAX_BLUR / (PEAK_SCALE - 1))
@@ -1191,14 +1193,14 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     if (mode === 'descent') {
       // Drive position imperatively at 60fps so we can layer pendulum swing
       // on top of the gentle drift to home. Framer Motion's transition is
-      // duration: 0 during descent — see transitionFor.
+      // duration: 0 during descent  -  see transitionFor.
       const startTime = performance.now()
       const startX = targetRef.current.x
       const startY = targetRef.current.y
       const duration = 2800
       const swingAmp = 32      // px peak
-      const swingFreq = 0.55   // Hz — about a swing every 1.8s
-      const swingDecay = 0.5   // 1/s — decays to ~25% over duration
+      const swingFreq = 0.55   // Hz  -  about a swing every 1.8s
+      const swingDecay = 0.5   // 1/s  -  decays to ~25% over duration
 
       let raf = null
       let cancelled = false
@@ -1303,7 +1305,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     </motion.div>
   )
 
-  // Subtle vignette dim during cinematic — opacity driven imperatively from the camera RAF.
+  // Subtle vignette dim during cinematic  -  opacity driven imperatively from the camera RAF.
   const backdrop = (
     <div
       ref={backdropRef}
@@ -1319,7 +1321,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
     />
   )
 
-  // Comic-style radial speed lines — position, opacity, and rotation imperatively driven.
+  // Comic-style radial speed lines  -  position, opacity, and rotation imperatively driven.
   // Lives inside body so it scales with the camera, growing into a full-frame burst.
   const SL_SIZE = 720
   const speedLines = (
@@ -1351,7 +1353,7 @@ export default function ClaudePixel({ size = 6, detective = false }) {
 
   return (
     <>
-      {/* Slot — reserves layout space at the navbar; the actual cat is portal'd. */}
+      {/* Slot  -  reserves layout space at the navbar; the actual cat is portal'd. */}
       <div
         ref={slotRef}
         style={{ width: W, height: SLOT_H, display: 'inline-block' }}

@@ -5,20 +5,24 @@ import ProjectCard from '../components/ProjectCard'
 import RulePanel from '../components/RulePanel'
 import PdfViewer from '../components/PdfViewer'
 import projects from '../data/projects'
+import ToastAnimation from '../components/ToastAnimation'
+import { usePageMeta } from '../hooks/usePageMeta'
+import KilledAnimation from '../components/KilledAnimation'
 
 /* ─── Preview Block ─────────────────────────────────────── */
 
+const BAR_COLORS = {
+  '#CEF8E0': '#22c55e',
+  '#FFF3D6': '#f59e0b',
+  '#D6ECFF': '#3b82f6',
+  '#E8DBFA': '#8b5cf6',
+  '#FFE0E0': '#ef4444',
+  '#D6F5EC': '#14b8a6',
+  '#E5EAFC': '#2E53E3',
+}
+
 function PreviewBlock({ color, type, className = '', style = {} }) {
-  const barColors = {
-    '#CEF8E0': '#22c55e',
-    '#FFF3D6': '#f59e0b',
-    '#D6ECFF': '#3b82f6',
-    '#E8DBFA': '#8b5cf6',
-    '#FFE0E0': '#ef4444',
-    '#D6F5EC': '#14b8a6',
-    '#E5EAFC': '#2E53E3',
-  }
-  const accent = barColors[color] || '#6366f1'
+  const accent = BAR_COLORS[color] || '#6366f1'
 
   if (type === 'chart') {
     return (
@@ -116,16 +120,7 @@ function PreviewBlock({ color, type, className = '', style = {} }) {
 /* ─── Mini Preview (smaller inline block) ───────────────── */
 
 function MiniPreview({ color, type, className = '' }) {
-  const barColors = {
-    '#CEF8E0': '#22c55e',
-    '#FFF3D6': '#f59e0b',
-    '#D6ECFF': '#3b82f6',
-    '#E8DBFA': '#8b5cf6',
-    '#FFE0E0': '#ef4444',
-    '#D6F5EC': '#14b8a6',
-    '#E5EAFC': '#2E53E3',
-  }
-  const accent = barColors[color] || '#6366f1'
+  const accent = BAR_COLORS[color] || '#6366f1'
 
   return (
     <div
@@ -156,35 +151,42 @@ function MiniPreview({ color, type, className = '' }) {
 
 function TabbedFigure({ tabs, ratio = '16 / 9' }) {
   const [active, setActive] = useState(0)
+  const [expanded, setExpanded] = useState(false)
   const current = tabs[active]
   const proportional = tabs.some((t) => t.widthPx)
   const maxPx = proportional ? Math.max(...tabs.map((t) => t.widthPx || 0)) : null
-  const { containerRef, imgRef, reset, recapture } = useZoom()
+  const { containerRef, imgRef, reset, recapture, zoomIn, zoomOut } = useZoom()
   useEffect(() => {
-    // React re-rendered the img with the new tab's style; resnapshot before reset restores it.
+    tabs.forEach((t) => { if (t.image) { const i = new Image(); i.src = t.image } })
+  }, [tabs])
+  useEffect(() => {
     recapture()
     reset()
   }, [active, recapture, reset])
   return (
+    <>
     <div className="my-6">
-      <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px] mb-3.5">
-        {tabs.map((t, i) => {
-          const isActive = i === active
-          return (
-            <button
-              key={t.label}
-              type="button"
-              onClick={() => setActive(i)}
-              className={`px-3.5 py-1.5 rounded-[5px] text-[12px] font-medium transition-colors
-                ${isActive
-                  ? 'bg-[var(--panel-tab-active)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
-                  : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-            >
-              {t.label}
-            </button>
-          )
-        })}
+      <div className="flex items-center justify-between mb-3.5">
+        <div className="inline-flex gap-0.5 bg-[var(--panel-soft)] rounded-lg p-[3px]">
+          {tabs.map((t, i) => {
+            const isActive = i === active
+            return (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => setActive(i)}
+                className={`px-3.5 py-1.5 rounded-[5px] text-[12px] font-medium transition-colors
+                  ${isActive
+                    ? 'bg-[var(--panel-tab-active)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                    : 'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+              >
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
+        <FigureToolbar reset={reset} zoomIn={zoomIn} zoomOut={zoomOut} onExpand={() => setExpanded(true)} />
       </div>
       {current.image ? (
         <figure
@@ -220,7 +222,7 @@ function TabbedFigure({ tabs, ratio = '16 / 9' }) {
               className="text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)] mb-2"
               style={{ fontFamily: "'Work Sans', sans-serif" }}
             >
-              insert img — {current.label}
+              insert img  -  {current.label}
             </p>
             <p className="text-[13px] text-[var(--text-secondary)] leading-[1.55]">
               {current.imagePlaceholder}
@@ -229,6 +231,10 @@ function TabbedFigure({ tabs, ratio = '16 / 9' }) {
         </div>
       )}
     </div>
+    {expanded && current.image && (
+      <FullscreenOverlay src={current.image} alt={current.alt || current.label} onClose={() => setExpanded(false)} />
+    )}
+    </>
   )
 }
 
@@ -439,44 +445,134 @@ function useZoom() {
     }
   }, [apply, updateCursor, captureBase])
 
-  return { containerRef, imgRef, reset, recapture }
+  const zoomBy = useCallback((delta) => {
+    const t = stateRef.current
+    if (!t.baseW) {
+      captureBase()
+      if (!stateRef.current.baseW) return
+    }
+    const next = Math.max(1, Math.min(5, t.scale + delta))
+    if (next <= 1.001) {
+      stateRef.current = { ...stateRef.current, scale: 1, x: 0, y: 0 }
+    } else {
+      const ratio = next / t.scale
+      stateRef.current = { ...stateRef.current, scale: next, x: t.x * ratio, y: t.y * ratio }
+    }
+    apply()
+    updateCursor()
+  }, [apply, updateCursor, captureBase])
+
+  const zoomIn  = useCallback(() => zoomBy(0.5),  [zoomBy])
+  const zoomOut = useCallback(() => zoomBy(-0.5), [zoomBy])
+
+  return { containerRef, imgRef, reset, recapture, zoomIn, zoomOut }
 }
 
-function ZoomableFigure({ src, alt, caption, height = 480 }) {
-  const { containerRef, imgRef } = useZoom()
+/* ─── Figure toolbar (zoom + expand) ───────────────────────── */
+function FigureToolbar({ reset, zoomIn, zoomOut, onExpand, dark = false }) {
+  const base = `w-6 h-6 rounded flex items-center justify-center transition-colors`
+  const cls  = dark
+    ? `${base} text-white/50 hover:text-white hover:bg-white/10`
+    : `${base} text-[var(--text-secondary)] hover:bg-[var(--border)]`
   return (
-    <figure className="my-6">
+    <div className="flex items-center gap-0.5">
+      <button onClick={zoomOut} className={cls} title="Zoom out">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button onClick={reset} className={`${cls} text-[10px] font-mono w-auto px-1.5`} title="Reset">1:1</button>
+      <button onClick={zoomIn} className={cls} title="Zoom in">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      {onExpand && (
+        <button onClick={onExpand} className={`${cls} ml-1`} title="Fullscreen">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ─── Fullscreen image overlay ──────────────────────────────── */
+function FullscreenOverlay({ src, alt, onClose }) {
+  const { containerRef, imgRef, reset, zoomIn, zoomOut } = useZoom()
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/92 backdrop-blur-sm flex flex-col">
+      <div className="flex items-center justify-between px-6 pt-4 pb-2 shrink-0">
+        <FigureToolbar reset={reset} zoomIn={zoomIn} zoomOut={zoomOut} dark />
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div
         ref={containerRef}
-        className="bg-[var(--panel-soft)] border border-[var(--border)] rounded-xl
-                   flex items-center justify-center overflow-hidden px-6 py-10 select-none"
-        style={{ height: `${height}px` }}
+        className="flex-1 flex items-center justify-center overflow-hidden select-none px-6 pb-6"
+        style={{ touchAction: 'none' }}
       >
         <img
           ref={imgRef}
           src={src}
           alt={alt}
-          loading="lazy"
           draggable={false}
-          className="block rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]"
-          style={{
-            width: 'auto',
-            height: 'auto',
-            maxWidth: '100%',
-            maxHeight: '100%',
-            willChange: 'transform',
-          }}
+          className="block rounded-md shadow-2xl"
+          style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', willChange: 'transform' }}
         />
       </div>
-      {caption && (
-        <figcaption
-          className="text-[12px] italic text-[var(--text-muted)] mt-2"
-          style={{ fontFamily: "'Work Sans', sans-serif" }}
+    </div>
+  )
+}
+
+function ZoomableFigure({ src, alt, caption, height = 480 }) {
+  const { containerRef, imgRef, reset, zoomIn, zoomOut } = useZoom()
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <>
+    <figure className="my-6">
+      <div
+        className="bg-[var(--panel-soft)] border border-[var(--border)] rounded-xl overflow-hidden"
+      >
+        <div className="flex items-center justify-end px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+          <FigureToolbar reset={reset} zoomIn={zoomIn} zoomOut={zoomOut} onExpand={() => setExpanded(true)} />
+        </div>
+        <div
+          ref={containerRef}
+          className="flex items-center justify-center overflow-hidden px-6 py-10 select-none"
+          style={{ height: `${height}px` }}
         >
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            loading="lazy"
+            draggable={false}
+            className="block rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]"
+            style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%', willChange: 'transform' }}
+          />
+        </div>
+      </div>
+      {caption && (
+        <figcaption className="text-[12px] italic text-[var(--text-muted)] mt-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>
           {caption}
         </figcaption>
       )}
     </figure>
+    {expanded && <FullscreenOverlay src={src} alt={alt} onClose={() => setExpanded(false)} />}
+    </>
   )
 }
 
@@ -523,53 +619,40 @@ function ScrollablePreview({ src, alt, caption, height = 480 }) {
 }
 
 function DSFigure({ src, alt, caption, wide = false }) {
-  const [zoomed, setZoomed] = useState(false)
-
-  const imgClass = "block w-full h-auto cursor-zoom-in"
+  const { containerRef, imgRef, reset, zoomIn, zoomOut } = useZoom()
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <>
-      <figure className="my-6">
+      <figure className="my-6" style={{ display: 'block', width: '100%', minWidth: 0 }}>
         <div
-          className={`rounded-xl border border-[var(--border)] overflow-hidden${wide ? ' overflow-x-auto' : ''}`}
-          onClick={() => setZoomed(true)}
+          className="rounded-xl border border-[var(--border)]"
+          style={{ width: '100%', minWidth: 0, overflow: wide ? 'auto' : 'hidden' }}
         >
-          <img
-            src={src}
-            alt={alt}
-            loading="lazy"
-            className={wide ? `${imgClass} min-w-[900px] sm:min-w-0` : imgClass}
-          />
+          <div className="flex items-center justify-end px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
+            <FigureToolbar reset={reset} zoomIn={zoomIn} zoomOut={zoomOut} onExpand={() => setExpanded(true)} />
+          </div>
+          <div ref={containerRef} className="select-none">
+            <img
+              ref={imgRef}
+              src={src}
+              alt={alt}
+              loading="lazy"
+              draggable={false}
+              style={wide
+                ? { display: 'block', height: 'auto', minWidth: '700px', willChange: 'transform' }
+                : { display: 'block', width: '100%', height: 'auto', maxWidth: '100%', willChange: 'transform' }
+              }
+            />
+          </div>
         </div>
         {caption && (
-          <figcaption
-            className="text-[12px] italic text-[var(--text-muted)] mt-2"
-            style={{ fontFamily: "'Work Sans', sans-serif" }}
-          >
+          <figcaption className="text-[12px] italic text-[var(--text-muted)] mt-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>
             {caption}
           </figcaption>
         )}
       </figure>
-
-      {zoomed && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 cursor-zoom-out"
-          onClick={() => setZoomed(false)}
-        >
-          <button
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-            onClick={() => setZoomed(false)}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      {expanded && <FullscreenOverlay src={src} alt={alt} onClose={() => setExpanded(false)} />}
     </>
   )
 }
@@ -694,10 +777,11 @@ function SectionLabel({ children }) {
 /* ─── Stat Card ─────────────────────────────────────────── */
 
 function StatCard({ value, label }) {
+  const isLong = value.length > 12
   return (
     <div className="flex-1 border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
       <p
-        className="text-[28px] font-bold text-[var(--text-primary)] leading-tight"
+        className={`${isLong ? 'text-[15px]' : 'text-[28px]'} font-bold text-[var(--text-primary)] leading-tight`}
         style={{ fontFamily: "'Work Sans', sans-serif" }}
       >
         {value}
@@ -707,7 +791,7 @@ function StatCard({ value, label }) {
   )
 }
 
-/* ─── Claude mark — Claude Code loading animation ────────── */
+/* ─── Claude mark  -  Claude Code loading animation ────────── */
 
 // U+FE0E forces text presentation so the glyphs honor `color` instead of rendering as emoji
 const CLAUDE_FRAMES = ['✶︎', '✷︎', '✸︎', '✹︎', '✺︎', '✻︎', '✼︎', '✽︎']
@@ -739,7 +823,7 @@ function ClaudeMark({ size = 56 }) {
   )
 }
 
-/* ─── Pixel agent — cute boxy metal robot ────────────────── */
+/* ─── Pixel agent  -  cute boxy metal robot ────────────────── */
 
 const METAL = {
   L: '#D4D4D8', // highlight
@@ -752,34 +836,34 @@ const METAL = {
 
 // 10 cols × 12 rows, each "pixel" = 10×10 in viewBox 0 0 100 120
 const ROBOT_PIXELS = [
-  // Row 1 — antenna stem
+  // Row 1  -  antenna stem
   [4, 1, 'D'],
-  // Row 2 — head top highlight band
+  // Row 2  -  head top highlight band
   [0, 2, 'L'], [1, 2, 'L'], [2, 2, 'L'], [3, 2, 'L'], [4, 2, 'L'],
   [5, 2, 'L'], [6, 2, 'L'], [7, 2, 'L'], [8, 2, 'L'], [9, 2, 'L'],
-  // Row 3 — head metal
+  // Row 3  -  head metal
   [0, 3, 'L'], [1, 3, 'M'], [2, 3, 'M'], [3, 3, 'M'], [4, 3, 'M'],
   [5, 3, 'M'], [6, 3, 'M'], [7, 3, 'M'], [8, 3, 'M'], [9, 3, 'D'],
-  // Row 4 — screen top
+  // Row 4  -  screen top
   [0, 4, 'L'], [1, 4, 'M'], [2, 4, 'S'], [3, 4, 'S'], [4, 4, 'S'],
   [5, 4, 'S'], [6, 4, 'S'], [7, 4, 'S'], [8, 4, 'M'], [9, 4, 'D'],
-  // Row 5 — screen eye row (eye dots overlaid separately for blink)
+  // Row 5  -  screen eye row (eye dots overlaid separately for blink)
   [0, 5, 'L'], [1, 5, 'M'], [2, 5, 'S'], [3, 5, 'S'], [4, 5, 'S'],
   [5, 5, 'S'], [6, 5, 'S'], [7, 5, 'S'], [8, 5, 'M'], [9, 5, 'D'],
-  // Row 6 — screen blank
+  // Row 6  -  screen blank
   [0, 6, 'L'], [1, 6, 'M'], [2, 6, 'S'], [3, 6, 'S'], [4, 6, 'S'],
   [5, 6, 'S'], [6, 6, 'S'], [7, 6, 'S'], [8, 6, 'M'], [9, 6, 'D'],
-  // Row 7 — screen smile (4-wide)
+  // Row 7  -  screen smile (4-wide)
   [0, 7, 'L'], [1, 7, 'M'], [2, 7, 'S'], [3, 7, 'E'], [4, 7, 'E'],
   [5, 7, 'E'], [6, 7, 'E'], [7, 7, 'S'], [8, 7, 'M'], [9, 7, 'D'],
-  // Row 8 — head bottom shadow band
+  // Row 8  -  head bottom shadow band
   [0, 8, 'D'], [1, 8, 'D'], [2, 8, 'D'], [3, 8, 'D'], [4, 8, 'D'],
   [5, 8, 'D'], [6, 8, 'D'], [7, 8, 'D'], [8, 8, 'D'], [9, 8, 'D'],
-  // Row 9 — body top
+  // Row 9  -  body top
   [2, 9, 'M'], [3, 9, 'M'], [4, 9, 'M'], [5, 9, 'M'], [6, 9, 'M'], [7, 9, 'M'],
-  // Row 10 — body shaded
+  // Row 10  -  body shaded
   [2, 10, 'L'], [3, 10, 'M'], [4, 10, 'M'], [5, 10, 'M'], [6, 10, 'M'], [7, 10, 'D'],
-  // Row 11 — feet
+  // Row 11  -  feet
   [1, 11, 'D'], [2, 11, 'D'], [7, 11, 'D'], [8, 11, 'D'],
 ]
 
@@ -794,7 +878,7 @@ function PixelAgent({ size = 44 }) {
       transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
       style={{ overflow: 'visible', shapeRendering: 'crispEdges' }}
     >
-      {/* antenna LED tip — pulses */}
+      {/* antenna LED tip  -  pulses */}
       <motion.rect
         x={40}
         y={0}
@@ -805,7 +889,7 @@ function PixelAgent({ size = 44 }) {
         transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* body — shaded metal */}
+      {/* body  -  shaded metal */}
       {ROBOT_PIXELS.map(([col, row, c]) => (
         <rect
           key={`${col}-${row}`}
@@ -817,7 +901,7 @@ function PixelAgent({ size = 44 }) {
         />
       ))}
 
-      {/* eyes — single dots that blink occasionally */}
+      {/* eyes  -  single dots that blink occasionally */}
       <motion.g
         fill={METAL.E}
         animate={{ opacity: [1, 1, 0, 1] }}
@@ -851,142 +935,25 @@ function Reveal({ children, className = '' }) {
   )
 }
 
-/* ─── Case Study Content ────────────────────────────────── */
-
-function getCaseStudyContent(project) {
-  const type = project.previewType
-
-  if (type === 'bars') {
-    return {
-      overview:
-        'This project focused on giving users full visibility and control over how their income gets distributed across financial goals. We replaced a rigid allocation model with an interactive, drag-based interface that makes complex money management feel effortless.',
-      challenge: [
-        'Users were struggling with the existing allocation workflow. The legacy interface required multiple page navigations to adjust a single split, and there was no visual feedback until changes were saved. Drop-off during the allocation step was significantly higher than the platform average.',
-        'Research interviews revealed that most users wanted to "see the math" as they moved money around. They needed confidence that adjustments to one bucket would not silently affect others. The existing system did not surface these relationships.',
-        'We also identified a trust gap: users who could not preview outcomes before committing were far less likely to complete the flow. The challenge was to make allocation feel safe, transparent, and even enjoyable.',
-      ],
-      processIntro:
-        'We started with a competitive audit of allocation UIs across banking and investment apps, then moved into rapid prototyping with real user data.',
-      processSteps: [
-        'Mapped 14 distinct user journeys through the existing allocation flow and identified 6 critical friction points',
-        'Ran 3 rounds of unmoderated usability tests with 40+ participants, iterating on drag interaction patterns',
-        'Built a constraint-satisfaction model so adjusting one allocation automatically rebalances others in real time',
-        'Designed a progressive disclosure system — simple mode for quick splits, advanced mode for percentage-level control',
-      ],
-      solutionIntro:
-        'The final design centers on a single-screen allocation canvas. Users drag allocation handles between buckets while a live preview updates totals, percentages, and projected growth in real time.',
-      stats: [
-        { value: '40%', label: 'Reduction in drop-off' },
-        { value: '12K', label: 'Daily active users' },
-        { value: '2.4min', label: 'Avg. completion time' },
-      ],
-      results:
-        'Post-launch data confirmed that the redesigned allocation interface cut task completion time nearly in half and increased user confidence scores by 35%. The drag interaction became one of the most-praised features in quarterly NPS surveys, and the pattern was later adopted across two other product verticals.',
-      deliverables: ['Design System', 'Prototype', 'User Flows', 'Spec Doc'],
-    }
-  }
-
-  if (type === 'chart') {
-    return {
-      overview:
-        'We designed an analytics experience that transforms raw transaction data into clear, actionable spending insights. The goal was to help users understand where their money goes without requiring financial literacy or manual categorization.',
-      challenge: [
-        'Users had access to transaction history but no meaningful way to interpret patterns. Existing analytics were limited to a static pie chart that updated monthly — too slow and too abstract to drive behavior change.',
-        'Our research showed that 68% of users checked their balance daily but fewer than 10% ever opened the analytics tab. The feature existed, but it was not designed to be useful in the moments that mattered.',
-        'The core challenge was building a system that could surface relevant insights at the right time, without overwhelming users with data they did not ask for.',
-      ],
-      processIntro:
-        'We adopted a data-first design approach, working with the analytics engineering team to define what insights were technically feasible before sketching any UI.',
-      processSteps: [
-        'Analyzed 6 months of anonymized transaction data to identify the 12 most common spending categories and peak usage windows',
-        'Co-designed the insight engine logic with data science — rules for when to surface a nudge vs. a summary vs. a warning',
-        'Prototyped 5 chart interaction models and tested readability across age groups and financial literacy levels',
-        'Established a design token system for data visualization to ensure consistency across chart types and themes',
-      ],
-      solutionIntro:
-        'The solution is a layered analytics dashboard — a glanceable summary at the top, interactive breakdowns in the middle, and contextual nudges woven throughout. Charts respond to touch with detailed tooltips and comparison overlays.',
-      stats: [
-        { value: '5.2x', label: 'Increase in analytics engagement' },
-        { value: '8min', label: 'Avg. session time' },
-        { value: '89%', label: 'User satisfaction score' },
-      ],
-      results:
-        'The new analytics experience became the second most-visited screen in the app within two weeks of launch. Users who engaged with spending insights were 3x more likely to set a budget goal, creating a strong feedback loop between awareness and action.',
-      deliverables: ['Data Viz System', 'Prototype', 'Interaction Spec'],
-    }
-  }
-
-  if (type === 'cards') {
-    return {
-      overview:
-        'This project streamlined a compliance-heavy review process into a guided, card-based experience. We reduced cognitive load by breaking dense policy documents into scannable, comparable sections.',
-      challenge: [
-        'Advisors were spending an average of 45 minutes per policy review, manually comparing PDF documents side-by-side. Key changes between renewal periods were buried in legal language, leading to missed updates and compliance risk.',
-        'The existing digital tool was essentially a PDF viewer with highlighting. It did not surface what changed, what mattered, or what required action. Advisors developed workarounds — printing pages, using sticky notes — that defeated the purpose of the digital tool.',
-        'We needed to design a system that could parse complexity and present it as clarity, without losing the legal precision that compliance teams required.',
-      ],
-      processIntro:
-        'We embedded with the compliance team for two weeks, shadowing real review sessions and documenting every workaround and pain point.',
-      processSteps: [
-        'Created a task-flow map of the full review process, identifying 8 steps that could be automated or simplified',
-        'Designed a diff-view pattern that highlights policy changes inline with color-coded severity indicators',
-        'Tested 3 information architecture models — wizard, single-page, and card-based — with 12 advisors',
-        'Built an annotation system that lets advisors flag, comment, and approve sections without leaving the review flow',
-      ],
-      solutionIntro:
-        'The final design uses a card-based layout where each policy section becomes a reviewable unit. Changes are highlighted automatically, and advisors can approve sections individually or in bulk.',
-      stats: [
-        { value: '40%', label: 'Faster review time' },
-        { value: '97%', label: 'Compliance accuracy' },
-        { value: '4.6/5', label: 'Advisor satisfaction' },
-      ],
-      results:
-        'The redesigned review flow reduced average review time from 45 minutes to 27 minutes. Compliance teams reported zero missed policy changes in the first quarter after launch, compared to an average of 3.2 per quarter previously.',
-      deliverables: ['Design System', 'Prototype', 'User Flows', 'Handoff Doc'],
-    }
-  }
-
-  // type === 'list' or fallback
-  return {
-    overview:
-      'We designed a structured, step-by-step experience that guides users through a traditionally complex process. The wizard-based approach breaks overwhelming tasks into manageable, sequential decisions.',
-    challenge: [
-      'The existing workflow presented all options simultaneously, creating decision paralysis. Users frequently abandoned the process midway, unsure whether their selections were correct or complete.',
-      'Stakeholder interviews revealed that the primary barrier was not complexity itself, but the lack of guidance. Users did not know what information they needed upfront, what order to complete steps in, or whether they could make changes later.',
-      'We needed to design a flow that felt guided without feeling restrictive — one that accommodated both first-time users who needed hand-holding and experienced users who wanted to move quickly.',
-    ],
-    processIntro:
-      'We mapped the decision tree end-to-end, identifying required vs. optional steps and the dependencies between them.',
-    processSteps: [
-      'Conducted card-sorting sessions with 20 users to determine the most intuitive grouping and ordering of steps',
-      'Designed a branching logic system that adapts the flow based on earlier selections, hiding irrelevant steps',
-      'Created a persistent progress indicator that shows completion state and allows non-linear navigation',
-      'Built inline validation and contextual help that surfaces guidance exactly when users need it',
-    ],
-    solutionIntro:
-      'The final design is a responsive wizard with smart defaults, inline validation, and a persistent sidebar that shows progress and allows users to jump between completed sections.',
-    stats: [
-      { value: '62%', label: 'Higher completion rate' },
-      { value: '3.8min', label: 'Avg. time to complete' },
-      { value: '92%', label: 'First-attempt success' },
-    ],
-    results:
-      'The guided flow increased end-to-end completion rates from 54% to 88%. Support ticket volume related to this workflow dropped by 71%, and the pattern was subsequently adopted as the standard for all multi-step processes across the platform.',
-    deliverables: ['Prototype', 'User Flows', 'Component Library'],
-  }
-}
-
 /* ─── Main Component ────────────────────────────────────── */
 
 export default function ProjectDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  useEffect(() => { window.scrollTo(0, 0) }, [id])
   const project = projects.find((p) => p.id === id) || projects[0]
-  const otherProjects = projects.filter((p) => p.id !== project.id).slice(0, 3)
+  usePageMeta({
+    title: `${project.title} | Satyam Dubey`,
+    description: project.description,
+    image: project.heroImage,
+  })
+  const caseStudyProjects = projects.filter((p) => p.caseStudy)
+  const currentIdx = caseStudyProjects.findIndex((p) => p.id === project.id)
+  const nextProject = caseStudyProjects[(currentIdx + 1) % caseStudyProjects.length]
   const rich = project.caseStudy
-  const content = rich || getCaseStudyContent(project)
+  const content = rich
   const [activeCat, setActiveCat] = useState(
-    rich && content.componentCategories ? content.componentCategories[0].id : null
+    content?.componentCategories ? content.componentCategories[0].id : null
   )
   const [openRule, setOpenRule] = useState(null)
   const activeCategory = content.componentCategories?.find((c) => c.id === activeCat)
@@ -1115,36 +1082,64 @@ export default function ProjectDetail() {
                 </div>
               </Reveal>
 
-              {/* Research — competitor matrix (only if defined) */}
+              {/* Entry points at top  -  Manual Account */}
+              {content.entryPoints && (
+                <Reveal>
+                  <SectionLabel>Entry points</SectionLabel>
+                  <div className="space-y-4 mb-12">
+                    {content.entryPoints.map((item) => (
+                      <div key={item.title} className="border border-[var(--border)] rounded-xl px-5 py-5 bg-[var(--bg-card)]">
+                        <p className="text-[15px] font-semibold text-[var(--text-primary)] mb-2" style={heading}>{item.title}</p>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{item.body}</p>
+                        {item.tabs && <ScopeTabs tabs={item.tabs} />}
+                        {!item.tabs && item.image && <DSFigure src={item.image} alt={item.alt} />}
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Widget preview at top  -  Strategic Review */}
+              {content.widgetSizes && content.showWidgetAtTop && (
+                <Reveal>
+                  <SectionLabel>{content.sectionLabels?.foundations || 'The widget'}</SectionLabel>
+                  {content.widgetSizesIntro && (
+                    <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">{content.widgetSizesIntro}</p>
+                  )}
+                  <div className="mb-12">
+                    <TabbedFigure tabs={content.widgetSizes} ratio="16 / 9" />
+                  </div>
+                </Reveal>
+              )}
+
+              {/* Research  -  competitor matrix (only if defined) */}
               {content.competitorMatrix && (
                 <Reveal>
                   <SectionLabel>{content.sectionLabels?.research || 'Research'}</SectionLabel>
                   <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
                     {content.competitorIntro}
                   </p>
-                  <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden mb-12">
+                  <div className="border border-[var(--border)] rounded-xl overflow-hidden mb-12 bg-[var(--bg-card)]">
                     {content.competitorMatrix.map((row, i) => (
                       <div
                         key={row.competitor}
                         className={`flex flex-col sm:flex-row sm:items-center px-5 py-4 gap-3 sm:gap-6 ${
-                          i !== content.competitorMatrix.length - 1 ? 'border-b border-[#E6E6E6]' : ''
+                          i !== content.competitorMatrix.length - 1 ? 'border-b border-[var(--border)]' : ''
                         }`}
                       >
                         <div className="sm:w-[200px] shrink-0 flex items-center gap-3">
-                          {row.logo && (
-                            <img
-                              src={row.logo}
-                              alt={`${row.competitor} logo`}
-                              loading="lazy"
-                              className="w-8 h-8 rounded-md object-contain bg-white"
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                          )}
-                          <p className="text-[14px] font-semibold text-[#1A1A1A]" style={heading}>
+                          <img
+                            src={row.logo || `https://www.google.com/s2/favicons?domain=${(row.domain || row.competitor.toLowerCase().replace(/\s+/g, ''))}.com&sz=64`}
+                            alt=""
+                            loading="lazy"
+                            className="w-7 h-7 rounded-md object-contain bg-[var(--panel-soft)] p-0.5"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          />
+                          <p className="text-[14px] font-semibold text-[var(--text-primary)]" style={heading}>
                             {row.competitor}
                           </p>
                         </div>
-                        <p className="text-[14px] text-[#6D6D6D] leading-[1.6]">{row.learning}</p>
+                        <p className="text-[14px] text-[var(--text-secondary)] leading-[1.6]">{row.learning}</p>
                       </div>
                     ))}
                   </div>
@@ -1171,7 +1166,7 @@ export default function ProjectDetail() {
                 </Reveal>
               )}
 
-              {/* Pain points — only if defined */}
+              {/* Pain points  -  only if defined */}
               {content.painPoints && (
                 <Reveal>
                   <div className="space-y-3 mb-12">
@@ -1180,8 +1175,8 @@ export default function ProjectDetail() {
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                             pt.severity === 'Critical'
-                              ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400'
-                              : 'bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400'
+                              ? 'bg-red-950/40 text-red-400'
+                              : 'bg-orange-950/40 text-orange-400'
                           }`}>
                             {pt.severity}
                           </span>
@@ -1200,11 +1195,11 @@ export default function ProjectDetail() {
                 </Reveal>
               )}
 
-              {/* Journey — image-led narrative section (only if defined) */}
+              {/* Journey  -  image-led narrative section (only if defined) */}
               {content.journey && (
                 <Reveal>
                   <SectionLabel>{content.sectionLabels?.journey || 'The journey'}</SectionLabel>
-                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                  <p className="text-[var(--text-secondary)] text-[17px] leading-[1.85] mb-8 max-w-2xl">
                     {content.journey.intro}
                   </p>
                   {content.journey.image ? (
@@ -1212,6 +1207,7 @@ export default function ProjectDetail() {
                       src={content.journey.image}
                       alt={content.journey.alt}
                       caption={content.journey.caption}
+                      height={content.journey.wide ? 600 : 480}
                     />
                   ) : (
                     <ImgPlaceholder
@@ -1223,7 +1219,7 @@ export default function ProjectDetail() {
                 </Reveal>
               )}
 
-              {/* The stance — doctrine */}
+              {/* The stance  -  doctrine */}
               <Reveal>
                 <SectionLabel>{content.sectionLabels?.stance || 'The stance'}</SectionLabel>
                 <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
@@ -1289,7 +1285,11 @@ export default function ProjectDetail() {
                               {rule.title}
                             </p>
                             <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7]">{rule.body}</p>
-                            {rule.tabs ? (
+                            {rule.animate === 'toast' ? (
+                              <ToastAnimation />
+                            ) : rule.animate === 'killed' ? (
+                              <KilledAnimation />
+                            ) : rule.tabs ? (
                               <TabbedFigure tabs={rule.tabs} ratio="16 / 9" />
                             ) : rule.scrollable && rule.image ? (
                               <ScrollablePreview src={rule.image} alt={rule.alt || rule.title} caption={rule.caption} />
@@ -1306,7 +1306,7 @@ export default function ProjectDetail() {
                 })()}
               </Reveal>
 
-              {/* Scope showcase — only if defined */}
+              {/* Scope showcase  -  only if defined */}
               {content.scopeShowcase && (
                 <Reveal>
                   <SectionLabel>{content.sectionLabels?.showcase || 'The scope'}</SectionLabel>
@@ -1340,7 +1340,7 @@ export default function ProjectDetail() {
                           <ImgPlaceholder description={item.imagePlaceholder} ratio="21 / 9" />
                         )}
                         {!item.sizes && !item.tabs && !item.pdf && item.image && (
-                          <DSFigure src={item.image} alt={item.alt} caption={item.caption} wide />
+                          <DSFigure src={item.image} alt={item.alt} caption={item.caption} wide={!!item.wide} />
                         )}
                       </div>
                     ))}
@@ -1489,7 +1489,7 @@ export default function ProjectDetail() {
               {content.componentCategories && activeCategory && (
                 <Reveal>
                   <div className="mb-16">
-                    {/* Tab bar — sticky pill style */}
+                    {/* Tab bar  -  sticky pill style */}
                     <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-[var(--bg)]/90 backdrop-blur-sm mb-8">
                       <div
                         className="flex gap-2 overflow-x-auto"
@@ -1785,12 +1785,12 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {/* ═══ Next Project — full width ═══ */}
+      {/* ═══ Next Project  -  full width ═══ */}
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-16 pb-20">
         <Reveal>
           <p className="text-[13px] text-[var(--text-muted)] mb-3">Next Project</p>
           <Link
-            to={`/project/${otherProjects[0].id}`}
+            to={`/project/${nextProject.id}`}
             className="group block w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden hover:border-[var(--text-muted)] hover:shadow-lg transition-all"
           >
             <div className="flex items-stretch">
@@ -1799,14 +1799,15 @@ export default function ProjectDetail() {
                   className="text-[20px] sm:text-[24px] lg:text-[28px] font-semibold text-[var(--text-primary)] leading-[1.2] group-hover:text-[var(--accent)] transition-colors"
                   style={heading}
                 >
-                  {otherProjects[0].title}
+                  {nextProject.title}
                 </h3>
               </div>
-              <div
-                className="w-[30%] sm:w-[35%] shrink-0 hidden sm:block"
-                style={{ backgroundColor: otherProjects[0].previewColor }}
-              >
-                <PreviewBlock color={otherProjects[0].previewColor} type={otherProjects[0].previewType} className="h-full" />
+              <div className="w-[30%] sm:w-[35%] shrink-0 hidden sm:block overflow-hidden">
+                <img
+                  src={nextProject.thumbnail}
+                  alt={nextProject.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </Link>

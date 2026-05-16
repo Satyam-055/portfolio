@@ -8,7 +8,7 @@ export default function HeroSection() {
   return (
     <section className="flex flex-col lg:flex-row items-center lg:items-start gap-12 sm:gap-16 lg:gap-24 px-6 sm:px-8 lg:px-16 pt-16 sm:pt-20 pb-12 sm:pb-16 lg:pt-28 lg:pb-20 max-w-6xl mx-auto w-full">
 
-      {/* ── Left — Hero portrait ── */}
+      {/* ── Left  -  Hero portrait ── */}
       <div className="relative shrink-0 w-[240px] sm:w-[280px] lg:w-[320px]">
         <img
           src="/images/hero-portrait.png"
@@ -30,7 +30,7 @@ export default function HeroSection() {
         )}
       </div>
 
-      {/* ── Right — Bio + Tags ── */}
+      {/* ── Right  -  Bio + Tags ── */}
       <div className="flex-1 text-left lg:pt-4">
         <h1
           className="text-[36px] lg:text-[54px] font-semibold text-[var(--text-primary)] leading-[1.1] tracking-[-0.02em] mb-5"

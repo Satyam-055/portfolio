@@ -110,7 +110,7 @@ function OutputCard({ active }) {
               className="text-[10px] font-medium transition-all duration-500"
               style={{ color: active ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.15)' }}
             >
-              {active ? value : '———'}
+              {active ? value : ' -  -  - '}
             </span>
           </div>
         ))}

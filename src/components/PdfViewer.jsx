@@ -26,7 +26,7 @@ const BASE_WRAP = {
   panning:         { velocityDisabled: true },
 }
 
-/* ─── Zoom buttons — must be inside <TransformWrapper> ──── */
+/* ─── Zoom buttons  -  must be inside <TransformWrapper> ──── */
 function ZoomButtons({ large }) {
   const { zoomIn, zoomOut, resetTransform } = useControls()
   const cls = large

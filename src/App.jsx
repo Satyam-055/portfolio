@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { ThemeProvider } from './context/ThemeContext'
 import BottomNav from './components/BottomNav'
+import Footer from './components/Footer'
 import Work from './pages/Work'
 import ProjectDetail from './pages/ProjectDetail'
 import Resume from './pages/Resume'
@@ -28,6 +29,7 @@ function AppContent() {
           <Route path="/hobby" element={<Hobby />} />
         </Routes>
       </AnimatePresence>
+      <Footer />
       <BottomNav />
     </div>
   )

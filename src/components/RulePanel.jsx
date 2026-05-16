@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import ParsePipeline from './ParsePipeline'
 import PdfViewer from './PdfViewer'
 
 export default function RulePanel({ rule, onClose }) {
   const example = rule?.example
+  const panelRef = useRef(null)
+  const dragRef = useRef({ startY: 0, dragging: false })
+  const [dragY, setDragY] = useState(0)
 
   useEffect(() => {
     if (!rule) return
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose()
-    }
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
@@ -17,6 +18,25 @@ export default function RulePanel({ rule, onClose }) {
       document.body.style.overflow = ''
     }
   }, [rule, onClose])
+
+  const onTouchStart = (e) => {
+    const panel = panelRef.current
+    if (!panel) return
+    if (panel.scrollTop > 0) return
+    dragRef.current = { startY: e.touches[0].clientY, dragging: true }
+  }
+
+  const onTouchMove = (e) => {
+    if (!dragRef.current.dragging) return
+    const delta = Math.max(0, e.touches[0].clientY - dragRef.current.startY)
+    setDragY(delta)
+  }
+
+  const onTouchEnd = () => {
+    if (dragY > 80) { onClose() }
+    dragRef.current.dragging = false
+    setDragY(0)
+  }
 
   if (!rule || !example) return null
 
@@ -27,13 +47,22 @@ export default function RulePanel({ rule, onClose }) {
       onClick={onClose}
     >
       <div
+        ref={panelRef}
         className="bg-[var(--bg-card)] text-[var(--text-primary)] w-[480px] max-w-full overflow-y-auto
                    shadow-[-16px_0_48px_rgba(0,0,0,0.4)]
                    px-8 pt-7 pb-12
                    max-md:w-full max-md:h-[92vh] max-md:rounded-t-2xl max-md:px-6 max-md:pt-2 max-md:pb-8
                    max-md:shadow-[0_-16px_48px_rgba(0,0,0,0.4)]"
-        style={{ animation: 'panelIn 240ms cubic-bezier(0.2, 0.8, 0.2, 1)' }}
+        style={{
+          animation: 'panelIn 240ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+          transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+          transition: dragY > 0 ? 'none' : 'transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+          opacity: dragY > 0 ? Math.max(0.4, 1 - dragY / 200) : undefined,
+        }}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {/* Mobile drag handle */}
         <div className="hidden max-md:block w-10 h-1 rounded-full bg-[var(--text-muted)] opacity-40 mx-auto mb-4 mt-2" />

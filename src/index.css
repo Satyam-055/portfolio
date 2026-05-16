@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'SacredLetter';
+  src: url('/fonts/SacredLetter.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SacredLetter-Alt';
+  src: url('/fonts/SacredLetter-Alt.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SacredLetter-Doodle';
+  src: url('/fonts/SacredLetter-Doodle.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root,
 [data-theme="dark"] {
   --bg: #050505;
@@ -20,24 +42,6 @@
   --reject-text: #FCD34D;
 }
 
-[data-theme="light"] {
-  --bg: #F5F5F5;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F0F0F0;
-  --border: #E6E6E6;
-  --border-subtle: #F0F0F0;
-  --text-primary: #1A1A1A;
-  --text-secondary: #6D6D6D;
-  --text-muted: #999999;
-  --dot-color: rgba(0,0,0,0.14);
-  --accent: #2D5BFF;
-  --label-accent: #B8860B;
-  --panel-soft: #F4F5F7;
-  --panel-tab-active: #FFFFFF;
-  --reject-bg: #FEF7E6;
-  --reject-border: #FCD34D;
-  --reject-text: #92400E;
-}
 
 body {
   margin: 0;
@@ -46,6 +50,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg);
   color: var(--text-primary);
+  font-size: 16px;
 }
 
 @keyframes panelIn {

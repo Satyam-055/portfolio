@@ -8,7 +8,7 @@ import { useTheme } from '../context/ThemeContext'
 const CONTACTS = [
   {
     label: 'LinkedIn',
-    href: 'https://www.linkedin.com/in/satyamdubey',
+    href: 'https://www.linkedin.com/in/satyam-dubey-042578192/',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -18,14 +18,14 @@ const CONTACTS = [
   },
   {
     label: 'Email',
-    href: 'mailto:satyam.dubey@alphanso.ai',
+    href: 'mailto:satyamdubey055@gmail.com',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="4" width="20" height="16" rx="2" />
         <path d="M22 4l-10 8L2 4" />
       </svg>
     ),
-    copyable: 'satyam.dubey@alphanso.ai',
+    copyable: 'satyamdubey055@gmail.com',
   },
   {
     label: 'Read.cv',
@@ -93,7 +93,7 @@ function IconResume({ active }) {
   )
 }
 function IconHobby({ active }) {
-  // Incognito — hat + glasses
+  // Incognito  -  hat + glasses
   return active ? (
     <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       {/* Hat */}
@@ -152,7 +152,7 @@ function DesktopTray({ forceDark, onClose }) {
   useClickOutside(ref, onClose)
 
   const copyEmail = useCallback(() => {
-    navigator.clipboard.writeText('satyam.dubey@alphanso.ai')
+    navigator.clipboard.writeText('satyamdubey055@gmail.com')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [])
@@ -218,7 +218,7 @@ function MobileSheet({ forceDark, onClose }) {
   const [copied, setCopied] = useState(false)
 
   const copyEmail = useCallback(() => {
-    navigator.clipboard.writeText('satyam.dubey@alphanso.ai')
+    navigator.clipboard.writeText('satyamdubey055@gmail.com')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [])
@@ -323,15 +323,15 @@ export default function BottomNav() {
   const [contactOpen, setContactOpen] = useState(false)
   const [pillHovered, setPillHovered] = useState(false)
   const waveRef = useRef(null)
-  const { theme, toggleTheme } = useTheme()
+  const { theme } = useTheme()
 
-  // Cat visibility — persisted to localStorage, defaults to visible
+  // Cat visibility  -  off by default; auto-on in incognito
   const [catVisible, setCatVisible] = useState(() => {
     try {
       const saved = localStorage.getItem('catVisible')
-      return saved === null ? true : saved === 'true'
+      return saved === null ? false : saved === 'true'
     } catch {
-      return true
+      return false
     }
   })
   useEffect(() => {
@@ -339,10 +339,14 @@ export default function BottomNav() {
   }, [catVisible])
   const toggleCat = () => setCatVisible((v) => !v)
 
+  // Auto-enable cat when on Moonlight tab
+  useEffect(() => {
+    if (location.pathname === '/hobby') setCatVisible(true)
+  }, [location.pathname])
+
 
   const isHobby = location.pathname === '/hobby'
-  // forceDark: on hobby page always dark; otherwise follow theme
-  const forceDark = isHobby || theme === 'dark'
+  const forceDark = true
   const moonlightAudioRef = useRef(null)
 
   // Play sound when clicking Moonlight tab (must be in click handler for autoplay policy)
@@ -359,7 +363,7 @@ export default function BottomNav() {
   useEffect(() => { setContactOpen(false) }, [location.pathname])
 
   const tabClass = ({ isActive }) =>
-    `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-500 w-12 h-12 sm:w-auto sm:h-auto justify-center sm:justify-start ${
+    `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-500 w-9 h-9 sm:w-auto sm:h-auto justify-center sm:justify-start ${
       isActive
         ? 'bg-[var(--accent)] text-white'
         : forceDark
@@ -393,7 +397,7 @@ export default function BottomNav() {
 
         {/* ── Nav Pill ── */}
         <div
-          className={`relative flex items-center rounded-2xl shadow-lg px-6 sm:px-10 py-3 sm:py-2 gap-2 sm:gap-1 transition-colors duration-500 ${
+          className={`relative flex items-center rounded-2xl shadow-lg px-5 sm:px-10 py-2 gap-1 w-[92vw] sm:w-auto justify-between sm:justify-start transition-colors duration-500 ${
             forceDark
               ? 'bg-neutral-900 border border-neutral-700/60'
               : 'bg-white border border-gray-200'
@@ -401,7 +405,7 @@ export default function BottomNav() {
           onMouseEnter={() => setPillHovered(true)}
           onMouseLeave={() => setPillHovered(false)}
         >
-          {/* Cat visibility toggle — pixel cat lives in the thumb (uses real palette from ClaudePixel) */}
+          {/* Cat visibility toggle  -  pixel cat lives in the thumb (uses real palette from ClaudePixel) */}
           <button
             onClick={toggleCat}
             role="switch"
@@ -421,12 +425,12 @@ export default function BottomNav() {
                 catVisible ? 'translate-x-[18px]' : 'translate-x-0'
               }`}
             >
-              {/* Pulled directly from ClaudePixel.drawBody — same shape, same palette */}
+              {/* Pulled directly from ClaudePixel.drawBody  -  same shape, same palette */}
               <svg width="14" height="11" viewBox="0 0 10 8" shapeRendering="crispEdges">
                 {/* Ears */}
                 <rect x="2" y="0" width="1" height="1" fill="#c4856a" />
                 <rect x="7" y="0" width="1" height="1" fill="#c4856a" />
-                {/* Head row 1 — top of head */}
+                {/* Head row 1  -  top of head */}
                 <rect x="2" y="1" width="7" height="1" fill="#c4856a" />
                 {/* Head row 2 with eyes */}
                 <rect x="1" y="2" width="9" height="1" fill="#c4856a" />
@@ -435,7 +439,7 @@ export default function BottomNav() {
                 {/* Face row with nose */}
                 <rect x="1" y="3" width="9" height="1" fill="#c4856a" />
                 <rect x="4" y="3" width="2" height="1" fill="#8a5a42" />
-                {/* Torso top — lighter */}
+                {/* Torso top  -  lighter */}
                 <rect x="1" y="4" width="9" height="1" fill="#d49a82" />
                 {/* Torso */}
                 <rect x="1" y="5" width="9" height="1" fill="#c4856a" />
@@ -464,33 +468,6 @@ export default function BottomNav() {
           <NavLink to="/hobby" className={tabClass} onClick={playMoonlightSound}>
             {({ isActive }) => (<><IconHobby active={isActive} /><span className="hidden sm:inline">Moonlight</span></>)}
           </NavLink>
-
-          {/* Divider before theme toggle */}
-          <div className={`w-px h-4 mx-2 opacity-20 transition-colors duration-500 ${forceDark ? 'bg-neutral-400' : 'bg-gray-400'}`} />
-
-          {/* Theme toggle */}
-          <motion.button
-            onClick={toggleTheme}
-            className={`flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-500 ${
-              forceDark
-                ? 'hover:bg-white/10 text-neutral-400'
-                : 'hover:bg-gray-100 text-[#6D6D6D]'
-            }`}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={theme}
-                initial={{ rotate: -90, scale: 0 }}
-                animate={{ rotate: 0, scale: 1 }}
-                exit={{ rotate: 90, scale: 0 }}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="flex items-center justify-center"
-              >
-                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-              </motion.span>
-            </AnimatePresence>
-          </motion.button>
 
           {/* Divider before wave */}
           <div className={`w-px h-4 mx-1 opacity-20 transition-colors duration-500 ${forceDark ? 'bg-neutral-400' : 'bg-gray-400'}`} />
