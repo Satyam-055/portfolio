@@ -128,39 +128,53 @@ export default function Resume() {
       transition={{ duration: 0.4, ease: 'easeOut' }}
       className="min-h-screen pb-28"
     >
-      {/* ── Profile Hero ── */}
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 pt-16 sm:pt-20 lg:pt-24 text-center">
-        <div className="relative inline-block mb-5">
-          <div
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[var(--text-primary)] text-[var(--bg)] flex items-center justify-center text-[28px] sm:text-[32px] font-bold"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            SD
+      {/* ── Hero ── */}
+      <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-16 pt-12 sm:pt-16 lg:pt-20">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-16">
+
+          {/* Image */}
+          <img
+            src="/images/satyam-fort.png"
+            alt="Satyam at the fort"
+            draggable={false}
+            className="w-[60%] sm:w-[45%] lg:w-[38%] shrink-0"
+            style={{ height: 'auto' }}
+          />
+
+          {/* Text */}
+          <div className="text-center lg:text-left">
+            <h1
+              className="text-[32px] sm:text-[42px] lg:text-[48px] font-semibold text-[var(--text-primary)] leading-[1.1] tracking-[-0.02em]"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              {profile.name}
+            </h1>
+            <div className="flex items-center justify-center lg:justify-start gap-3 mt-2">
+              <span className="text-[16px] text-[var(--text-secondary)]">{profile.title}</span>
+              <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
+              <span className="text-[14px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                {profile.location}
+              </span>
+            </div>
+            <a
+              href="/resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-5 text-[13px] font-medium text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              View Resume
+            </a>
           </div>
-          {/* Current indicator */}
-          <div className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-[#22c55e] rounded-full border-2 border-[var(--bg)]" />
+
         </div>
-
-        <h1
-          className="text-[32px] sm:text-[42px] lg:text-[48px] font-semibold text-[var(--text-primary)] leading-[1.1] tracking-[-0.02em]"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          {profile.name}
-        </h1>
-
-        <div className="flex items-center justify-center gap-3 mt-2 mb-6">
-          <span className="text-[16px] text-[var(--text-secondary)]">{profile.title}</span>
-          <span className="w-1 h-1 rounded-full bg-[var(--text-muted)]" />
-          <span className="text-[14px] text-[var(--text-muted)] flex items-center gap-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {profile.location}
-          </span>
-        </div>
-
-        <div className="mb-16" />
       </div>
 
       {/* ── Two-column body ── */}

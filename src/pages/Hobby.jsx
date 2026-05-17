@@ -412,7 +412,6 @@ export default function Hobby() {
       transition={{ duration: 0.4 }}
       className="min-h-screen"
     >
-      <PixelDiscoBall />
       {/* Mobile bottom sheet */}
       <AnimatePresence>
         {sheetProject && (

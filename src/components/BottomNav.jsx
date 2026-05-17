@@ -70,11 +70,11 @@ function useClickOutside(ref, handler) {
 // ─── Tab icons (filled when active) ──────────────────────────
 function IconWork({ active }) {
   return active ? (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <path d="M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM10 5h4v2h-4V5z" />
     </svg>
   ) : (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="2" y="7" width="20" height="14" rx="2" />
       <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" strokeLinecap="round" />
     </svg>
@@ -82,11 +82,11 @@ function IconWork({ active }) {
 }
 function IconResume({ active }) {
   return active ? (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-2 16H8v-1h4v1zm2-3H8v-1h6v1zm0-3H8v-1h6v1zm-1-4V3.5L18.5 9H13z" />
     </svg>
   ) : (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -95,7 +95,7 @@ function IconResume({ active }) {
 function IconHobby({ active }) {
   // Incognito  -  hat + glasses
   return active ? (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       {/* Hat */}
       <path d="M2 11h20v2H2z"/>
       <path d="M5 11c0-4 3.13-7 7-7s7 3 7 7"/>
@@ -106,7 +106,7 @@ function IconHobby({ active }) {
       <path d="M5 16H3M21 16h-2"/>
     </svg>
   ) : (
-    <svg className="w-5 h-5 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="w-8 h-8 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       {/* Hat */}
       <line x1="2" y1="11" x2="22" y2="11"/>
       <path d="M5 11c0-4 3.13-7 7-7s7 3 7 7"/>
@@ -363,7 +363,7 @@ export default function BottomNav() {
   useEffect(() => { setContactOpen(false) }, [location.pathname])
 
   const tabClass = ({ isActive }) =>
-    `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-500 w-9 h-9 sm:w-auto sm:h-auto justify-center sm:justify-start ${
+    `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-500 w-12 h-12 sm:w-auto sm:h-auto justify-center sm:justify-start ${
       isActive
         ? 'bg-[var(--accent)] text-white'
         : forceDark
