@@ -41,7 +41,7 @@ const KEYWORDS = [
   },
 ]
 
-const TRAY_HEIGHT = 220
+const TRAY_HEIGHT = 90
 const TRAY_WIDTH  = 300
 
 function TrayImages({ images }) {
@@ -123,7 +123,6 @@ function Tray({ active, rect }) {
           pointerEvents: 'none',
         }}
       >
-        <TrayImages images={active.images} />
         <p
           style={{
             fontFamily: "'Space Grotesk', sans-serif",
@@ -131,7 +130,7 @@ function Tray({ active, rect }) {
             fontSize: 15,
             color: 'rgba(243,244,246,0.88)',
             lineHeight: 1.6,
-            margin: '16px 0 0',
+            margin: 0,
           }}
         >
           {active.note}

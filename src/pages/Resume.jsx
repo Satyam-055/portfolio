@@ -36,6 +36,26 @@ const legacy = [
     company: 'Cossouq',
     role: 'Visual Designer',
     period: 'Jul 2022 - Feb 2024',
+    sections: [
+      {
+        label: 'Web Design',
+        bullets: [
+          'Designed and built the marketing website — layout, typography, and responsive behaviour across breakpoints',
+        ],
+      },
+      {
+        label: 'Visual Storytelling',
+        bullets: [
+          'Created brand visuals, campaign graphics, and social content that carried a consistent visual language across every touchpoint',
+        ],
+      },
+      {
+        label: 'Video Editing',
+        bullets: [
+          'Produced and edited product and brand videos — scripting, cuts, motion, and final delivery',
+        ],
+      },
+    ],
   },
 ]
 
@@ -204,22 +224,45 @@ export default function Resume() {
             <div className="border-t border-[var(--border-subtle)] mb-5" />
 
             {/* Legacy roles */}
-            <div className="space-y-0">
+            <div className="space-y-10">
               {legacy.map((role) => (
-                <div
-                  key={role.company}
-                  className="group flex items-center gap-4 py-3.5 border-b border-[var(--border-subtle)] last:border-0"
-                >
-                  <CossouqMark grayscale />
-                  <span className="text-[14px] font-medium text-[var(--text-primary)]">{role.company}</span>
-                  <span className="text-[12px] text-[var(--border)]">·</span>
-                  <span className="text-[13px] text-[var(--text-secondary)]">{role.role}</span>
-                  <span
-                    className="text-[12px] text-[var(--text-muted)] ml-auto tabular-nums"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    {role.period}
-                  </span>
+                <div key={role.company}>
+                  <div className="flex items-start gap-4 mb-6">
+                    <CossouqMark />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[18px] font-semibold text-[var(--text-primary)] leading-tight">{role.role}</h3>
+                      <p className="text-[14px] text-[var(--text-secondary)] font-medium mt-0.5">{role.company}</p>
+                    </div>
+                    <span
+                      className="text-[12px] text-[var(--text-muted)] tabular-nums shrink-0 mt-1"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      {role.period}
+                    </span>
+                  </div>
+
+                  {role.sections && (
+                    <div className="pl-[52px] space-y-6">
+                      {role.sections.map((section) => (
+                        <div key={section.label}>
+                          <p
+                            className="text-[11px] font-medium tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3"
+                            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                          >
+                            {section.label}
+                          </p>
+                          <ul className="space-y-2.5">
+                            {section.bullets.map((b, i) => (
+                              <li key={i} className="flex items-start gap-2.5 text-[13px] text-[var(--text-secondary)] leading-relaxed">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)] mt-[6px] shrink-0" />
+                                {b}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

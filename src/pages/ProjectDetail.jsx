@@ -8,6 +8,7 @@ import projects from '../data/projects'
 import ToastAnimation from '../components/ToastAnimation'
 import { usePageMeta } from '../hooks/usePageMeta'
 import KilledAnimation from '../components/KilledAnimation'
+import PrototypePlayer from '../components/PrototypePlayer'
 
 /* ─── Preview Block ─────────────────────────────────────── */
 
@@ -1306,6 +1307,19 @@ export default function ProjectDetail() {
                 })()}
               </Reveal>
 
+              {/* Prototype player */}
+              {content.prototypeSteps && (
+                <Reveal>
+                  <SectionLabel>The flow</SectionLabel>
+                  <p className="text-[var(--text-secondary)] text-[15px] leading-[1.8] mb-6">
+                    Six steps. Click through to see exactly how a review goes from request to in-progress.
+                  </p>
+                  <div className="mb-12">
+                    <PrototypePlayer steps={content.prototypeSteps} />
+                  </div>
+                </Reveal>
+              )}
+
               {/* Scope showcase  -  only if defined */}
               {content.scopeShowcase && (
                 <Reveal>
@@ -1361,11 +1375,6 @@ export default function ProjectDetail() {
                       alt={content.tokenComposition.alt}
                       caption={content.tokenComposition.caption}
                     />
-                  </div>
-                )}
-                {content.widgetSizes && (
-                  <div className="mb-8">
-                    <TabbedFigure tabs={content.widgetSizes} ratio="16 / 9" />
                   </div>
                 )}
                 {content.foundationsImagePlaceholder && (
@@ -1793,10 +1802,10 @@ export default function ProjectDetail() {
             to={`/project/${nextProject.id}`}
             className="group block w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] overflow-hidden hover:border-[var(--text-muted)] hover:shadow-lg transition-all"
           >
-            <div className="flex items-stretch">
-              <div className="flex-1 flex items-center px-8 sm:px-10 py-6 sm:py-8">
+            <div className="flex items-stretch" style={{ height: '120px' }}>
+              <div className="flex-1 flex items-center px-8 sm:px-10">
                 <h3
-                  className="text-[20px] sm:text-[24px] lg:text-[28px] font-semibold text-[var(--text-primary)] leading-[1.2] group-hover:text-[var(--accent)] transition-colors"
+                  className="text-[15px] sm:text-[17px] lg:text-[19px] font-semibold text-[var(--text-primary)] leading-[1.2] group-hover:text-[var(--accent)] transition-colors"
                   style={heading}
                 >
                   {nextProject.title}
@@ -1804,9 +1813,9 @@ export default function ProjectDetail() {
               </div>
               <div className="w-[30%] sm:w-[35%] shrink-0 hidden sm:block overflow-hidden">
                 <img
-                  src={nextProject.thumbnail}
+                  src={nextProject.heroImage}
                   alt={nextProject.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
               </div>
             </div>

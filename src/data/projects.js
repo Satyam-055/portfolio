@@ -418,6 +418,14 @@ const projects = [
           alt: 'Investment Portfolio review opened  -  donuts for current vs recommended allocation, bar chart of weights, sector breakdown, holdings table, fixed income table, portfolio characteristics. Scroll to see the entire breakdown.',
         },
       ],
+      prototypeSteps: [
+        { img: '/case-studies/manual-account/prototype/1.webp', label: 'Dashboard — Strategic reviews widget, empty state', hotspot: { x: 47, y: 65 } },
+        { img: '/case-studies/manual-account/prototype/2.webp', label: 'Request a review — Investment Deep Dive selected', hotspot: { x: 82, y: 82 } },
+        { img: '/case-studies/manual-account/prototype/3.webp', label: 'Select specific investment to analyse', hotspot: { x: 51, y: 44 } },
+        { img: '/case-studies/manual-account/prototype/4.webp', label: 'Search returns suggestions while typing', hotspot: { x: 51, y: 59 } },
+        { img: '/case-studies/manual-account/prototype/5.webp', label: 'AAPL selected — Start review becomes active', hotspot: { x: 67, y: 53 } },
+        { img: '/case-studies/manual-account/prototype/6.webp', label: 'Review submitted — card appears in widget, "In review"' },
+      ],
       scopeShowcaseIntro:
         'The work that doesn\'t fit on a single page. Two of the six analyses  -  Tier Analysis and Income vs Allocation  -  shown across the sizes they ship in. Different charts react to breakpoints differently, which is why the size counts aren\'t identical.',
       scopeShowcase: [
