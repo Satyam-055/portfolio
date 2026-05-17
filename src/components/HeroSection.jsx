@@ -40,9 +40,7 @@ export default function HeroSection() {
         </h1>
 
         <p className="text-[17px] text-[var(--text-secondary)] mb-10 max-w-[520px] leading-[1.7]">
-          I'm a product designer building high-trust financial tools that
-          balance security with seamless usability. Currently at Alphanso,
-          making complex financial processes feel human.
+          I design high-trust financial tools for advisors and their clients. Currently at Alphanso, building the product and the design system it runs on.
         </p>
 
         <div className="flex flex-col gap-6">
@@ -116,6 +114,12 @@ export default function HeroSection() {
               <div className="w-[43px] h-[42px] flex items-center justify-center rounded-lg hover:bg-[var(--bg-card-hover)] transition-colors" title="Adobe Creative Suite">
                 <svg width="26" height="24" viewBox="0 0 30 26" fill="#FA0F00">
                   <path d="M11.5 0H0v26L11.5 0z"/><path d="M18.5 0H30v26L18.5 0z"/><path d="M15 9.6L22 26h-4.5l-2.1-5.2h-5.2L15 9.6z"/>
+                </svg>
+              </div>
+              <div className="w-[43px] h-[42px] flex items-center justify-center rounded-lg hover:bg-[var(--bg-card-hover)] transition-colors" title="Webflow">
+                <svg width="26" height="26" viewBox="0 0 1080 1080" fill="none">
+                  <rect width="1080" height="1080" rx="200" fill="#146EF5"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M898.312 337.5L683.467 757.5H481.667L571.579 583.434H567.545C493.368 679.726 382.694 743.115 225 757.5V585.843C225 585.843 325.88 579.884 385.185 517.534H225V337.503H405.031V485.576L409.072 485.559L482.639 337.503H618.791V484.637L622.832 484.631L699.159 337.5H898.312Z" fill="white"/>
                 </svg>
               </div>
             </div>

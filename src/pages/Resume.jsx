@@ -160,10 +160,6 @@ export default function Resume() {
           </span>
         </div>
 
-        <p className="text-[15px] text-[var(--text-secondary)] leading-[1.75] max-w-md mx-auto mb-8">
-          {profile.bio}
-        </p>
-
         <div className="mb-16" />
       </div>
 
